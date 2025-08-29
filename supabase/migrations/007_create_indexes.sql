@@ -1,145 +1,112 @@
--- Additional performance indexes for ClearDay
--- These supplement the indexes already created in individual table migrations
--- Focus on query patterns from architecture.md and common application usage
+-- Create performance indexes for common queries
+-- This migration adds strategic indexes to optimize query performance
 
--- Note: Many indexes were already created in previous migrations, 
--- this migration adds any additional indexes for performance optimization
+-- Profiles table indexes
+CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles(email);
+CREATE INDEX IF NOT EXISTS profiles_household_id_idx ON public.profiles(household_id);
+CREATE INDEX IF NOT EXISTS profiles_created_at_idx ON public.profiles(created_at);
 
--- Additional indexes for common query patterns
+-- Tasks table indexes
+CREATE INDEX IF NOT EXISTS tasks_user_id_due_date_idx ON public.tasks(user_id, due_date);
+CREATE INDEX IF NOT EXISTS tasks_user_id_status_idx ON public.tasks(user_id, status);
+CREATE INDEX IF NOT EXISTS tasks_user_id_priority_idx ON public.tasks(user_id, priority);
+CREATE INDEX IF NOT EXISTS tasks_household_id_idx ON public.tasks(household_id) WHERE household_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS tasks_due_date_idx ON public.tasks(due_date);
+CREATE INDEX IF NOT EXISTS tasks_status_idx ON public.tasks(status);
+CREATE INDEX IF NOT EXISTS tasks_priority_idx ON public.tasks(priority);
+CREATE INDEX IF NOT EXISTS tasks_completed_at_idx ON public.tasks(completed_at) WHERE completed_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS tasks_created_at_idx ON public.tasks(created_at);
+CREATE INDEX IF NOT EXISTS tasks_updated_at_idx ON public.tasks(updated_at);
 
--- Composite index for user's upcoming tasks (Today screen)
-CREATE INDEX IF NOT EXISTS tasks_user_upcoming_idx 
-ON public.tasks(user_id, due_date, completed) 
-WHERE completed = false AND due_date IS NOT NULL;
+-- Events table indexes
+CREATE INDEX IF NOT EXISTS events_user_id_start_time_idx ON public.events(user_id, start_time);
+CREATE INDEX IF NOT EXISTS events_user_id_end_time_idx ON public.events(user_id, end_time);
+CREATE INDEX IF NOT EXISTS events_start_time_idx ON public.events(start_time);
+CREATE INDEX IF NOT EXISTS events_end_time_idx ON public.events(end_time);
+CREATE INDEX IF NOT EXISTS events_all_day_idx ON public.events(all_day);
+CREATE INDEX IF NOT EXISTS events_integration_id_idx ON public.events(integration_id) WHERE integration_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS events_created_at_idx ON public.events(created_at);
+CREATE INDEX IF NOT EXISTS events_updated_at_idx ON public.events(updated_at);
 
--- Index for overdue tasks
-CREATE INDEX IF NOT EXISTS tasks_user_overdue_idx 
-ON public.tasks(user_id, due_date, completed) 
-WHERE completed = false AND due_date < CURRENT_DATE;
+-- Integrations table indexes
+CREATE INDEX IF NOT EXISTS integrations_user_id_provider_idx ON public.integrations(user_id, provider);
+CREATE INDEX IF NOT EXISTS integrations_provider_idx ON public.integrations(provider);
+CREATE INDEX IF NOT EXISTS integrations_active_idx ON public.integrations(active);
+CREATE INDEX IF NOT EXISTS integrations_created_at_idx ON public.integrations(created_at);
+CREATE INDEX IF NOT EXISTS integrations_updated_at_idx ON public.integrations(updated_at);
 
--- Index for today's events (frequently queried)
-CREATE INDEX IF NOT EXISTS events_user_today_idx 
-ON public.events(user_id, start_time) 
-WHERE DATE(start_time) = CURRENT_DATE;
+-- Reminders table indexes
+CREATE INDEX IF NOT EXISTS reminders_user_id_scheduled_time_idx ON public.reminders(user_id, scheduled_time);
+CREATE INDEX IF NOT EXISTS reminders_user_id_type_idx ON public.reminders(user_id, type);
+CREATE INDEX IF NOT EXISTS reminders_scheduled_time_idx ON public.reminders(scheduled_time);
+CREATE INDEX IF NOT EXISTS reminders_type_idx ON public.reminders(type);
+CREATE INDEX IF NOT EXISTS reminders_dismissed_idx ON public.reminders(dismissed);
+CREATE INDEX IF NOT EXISTS reminders_task_id_idx ON public.reminders(task_id) WHERE task_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS reminders_event_id_idx ON public.reminders(event_id) WHERE event_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS reminders_habit_id_idx ON public.reminders(habit_id) WHERE habit_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS reminders_created_at_idx ON public.reminders(created_at);
+CREATE INDEX IF NOT EXISTS reminders_updated_at_idx ON public.reminders(updated_at);
 
--- Index for this week's events
-CREATE INDEX IF NOT EXISTS events_user_week_idx 
-ON public.events(user_id, start_time) 
-WHERE start_time >= DATE_TRUNC('week', CURRENT_DATE)
-AND start_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week';
+-- Nudges table indexes
+CREATE INDEX IF NOT EXISTS nudges_user_id_type_idx ON public.nudges(user_id, type);
+CREATE INDEX IF NOT EXISTS nudges_user_id_created_at_idx ON public.nudges(user_id, created_at);
+CREATE INDEX IF NOT EXISTS nudges_type_idx ON public.nudges(type);
+CREATE INDEX IF NOT EXISTS nudges_action_type_idx ON public.nudges(action_type);
+CREATE INDEX IF NOT EXISTS nudges_expires_at_idx ON public.nudges(expires_at);
+CREATE INDEX IF NOT EXISTS nudges_shown_at_idx ON public.nudges(shown_at) WHERE shown_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS nudges_acted_at_idx ON public.nudges(acted_at) WHERE acted_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS nudges_created_at_idx ON public.nudges(created_at);
+CREATE INDEX IF NOT EXISTS nudges_updated_at_idx ON public.nudges(updated_at);
 
--- Index for household tasks (shared tasks query optimization)
-CREATE INDEX IF NOT EXISTS tasks_household_active_idx 
-ON public.tasks(household_id, completed, due_date) 
-WHERE household_id IS NOT NULL AND completed = false;
+-- Habits table indexes (already created in previous migration, but adding additional ones)
+CREATE INDEX IF NOT EXISTS habits_user_id_category_idx ON public.habits(user_id, category);
+CREATE INDEX IF NOT EXISTS habits_user_id_created_at_idx ON public.habits(user_id, created_at);
+CREATE INDEX IF NOT EXISTS habits_category_idx ON public.habits(category);
+CREATE INDEX IF NOT EXISTS habits_frequency_idx ON public.habits(frequency);
+CREATE INDEX IF NOT EXISTS habits_created_at_idx ON public.habits(created_at);
+CREATE INDEX IF NOT EXISTS habits_updated_at_idx ON public.habits(updated_at);
 
--- Index for recently updated items (for sync operations)
-CREATE INDEX IF NOT EXISTS tasks_recently_updated_idx 
-ON public.tasks(user_id, updated_at) 
-WHERE updated_at > (NOW() - INTERVAL '24 hours');
+-- Composite indexes for complex queries
+CREATE INDEX IF NOT EXISTS tasks_user_status_due_date_idx ON public.tasks(user_id, status, due_date);
+CREATE INDEX IF NOT EXISTS events_user_start_end_idx ON public.events(user_id, start_time, end_time);
+CREATE INDEX IF NOT EXISTS reminders_user_scheduled_dismissed_idx ON public.reminders(user_id, scheduled_time, dismissed);
+CREATE INDEX IF NOT EXISTS nudges_user_type_expires_idx ON public.nudges(user_id, type, expires_at);
+CREATE INDEX IF NOT EXISTS habits_user_frequency_streak_idx ON public.habits(user_id, frequency, current_streak);
 
-CREATE INDEX IF NOT EXISTS events_recently_updated_idx 
-ON public.events(user_id, updated_at) 
-WHERE updated_at > (NOW() - INTERVAL '24 hours');
+-- Partial indexes for active/current data
+CREATE INDEX IF NOT EXISTS tasks_active_user_idx ON public.tasks(user_id, due_date) WHERE status != 'completed';
+CREATE INDEX IF NOT EXISTS events_upcoming_user_idx ON public.events(user_id, start_time) WHERE start_time > NOW();
+CREATE INDEX IF NOT EXISTS reminders_pending_user_idx ON public.reminders(user_id, scheduled_time) WHERE dismissed = false;
+CREATE INDEX IF NOT EXISTS nudges_active_user_idx ON public.nudges(user_id, created_at) WHERE expires_at > NOW() OR expires_at IS NULL;
+CREATE INDEX IF NOT EXISTS habits_active_user_idx ON public.habits(user_id, current_streak) WHERE current_streak > 0;
 
--- Index for integration sync queries
-CREATE INDEX IF NOT EXISTS events_integration_sync_idx 
-ON public.events(integration_id, updated_at) 
-WHERE integration_id IS NOT NULL;
-
--- Index for recurring tasks (for recurring rule processing)
-CREATE INDEX IF NOT EXISTS tasks_recurring_idx 
-ON public.tasks(recurring_rule) 
-WHERE recurring_rule IS NOT NULL 
-USING gin(recurring_rule);
-
--- Partial index for completed tasks with completion time
-CREATE INDEX IF NOT EXISTS tasks_completed_with_time_idx 
-ON public.tasks(user_id, completed_at) 
-WHERE completed = true AND completed_at IS NOT NULL;
-
--- Index for event time conflicts (scheduling optimization)
-CREATE INDEX IF NOT EXISTS events_time_conflict_idx 
-ON public.events(user_id, start_time, end_time);
-
--- Index for all-day events
-CREATE INDEX IF NOT EXISTS events_all_day_user_idx 
-ON public.events(user_id, start_time) 
-WHERE all_day = true;
-
--- Index for events with attendees (meeting queries)
-CREATE INDEX IF NOT EXISTS events_with_attendees_idx 
-ON public.events(user_id, start_time) 
-WHERE jsonb_array_length(attendees) > 0;
-
--- Index for high priority tasks
-CREATE INDEX IF NOT EXISTS tasks_high_priority_idx 
-ON public.tasks(user_id, priority, due_date, completed) 
-WHERE priority IN (3, 4) AND completed = false;
-
--- Index for tasks by source (for analytics)
-CREATE INDEX IF NOT EXISTS tasks_source_analytics_idx 
-ON public.tasks(user_id, source, created_at);
-
--- Index for tasks with tags (for filtering)
-CREATE INDEX IF NOT EXISTS tasks_with_tags_idx 
-ON public.tasks(user_id, tags) 
-WHERE array_length(tags, 1) > 0 
-USING gin(tags);
-
--- Index for integration token expiry (for refresh operations)
-CREATE INDEX IF NOT EXISTS integrations_token_expiry_idx 
-ON public.integrations(token_expiry) 
-WHERE token_expiry IS NOT NULL AND sync_enabled = true;
-
--- Indexes for common profile queries
-CREATE INDEX IF NOT EXISTS profiles_household_members_idx 
-ON public.profiles(household_id) 
-WHERE household_id IS NOT NULL;
-
-CREATE INDEX IF NOT EXISTS profiles_privacy_mode_idx 
-ON public.profiles(privacy_mode) 
-WHERE privacy_mode = true;
-
--- Covering indexes for frequent SELECT queries (include commonly selected columns)
-
--- Covering index for task list queries
-CREATE INDEX IF NOT EXISTS tasks_list_covering_idx 
-ON public.tasks(user_id, due_date, completed) 
-INCLUDE (title, priority, tags, created_at);
-
--- Covering index for today's events
-CREATE INDEX IF NOT EXISTS events_today_covering_idx 
-ON public.events(user_id, start_time) 
-INCLUDE (title, end_time, location, all_day)
-WHERE DATE(start_time) = CURRENT_DATE;
-
--- Expression indexes for common date queries
-
--- Index for tasks due this week
-CREATE INDEX IF NOT EXISTS tasks_due_this_week_idx 
-ON public.tasks(user_id, completed)
-WHERE due_date >= DATE_TRUNC('week', CURRENT_DATE)
-AND due_date < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week'
-AND completed = false;
-
--- Index for events this month
-CREATE INDEX IF NOT EXISTS events_this_month_idx 
-ON public.events(user_id)
-WHERE start_time >= DATE_TRUNC('month', CURRENT_DATE)
-AND start_time < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month';
-
--- ANALYZE tables after creating indexes to update statistics
-ANALYZE public.profiles;
-ANALYZE public.households;
-ANALYZE public.tasks;
-ANALYZE public.events;
-ANALYZE public.integrations;
+-- Text search indexes for search functionality
+CREATE INDEX IF NOT EXISTS tasks_name_search_idx ON public.tasks USING gin(to_tsvector('english', name));
+CREATE INDEX IF NOT EXISTS tasks_description_search_idx ON public.tasks USING gin(to_tsvector('english', description));
+CREATE INDEX IF NOT EXISTS events_title_search_idx ON public.events USING gin(to_tsvector('english', title));
+CREATE INDEX IF NOT EXISTS events_description_search_idx ON public.events USING gin(to_tsvector('english', description));
+CREATE INDEX IF NOT EXISTS habits_name_search_idx ON public.habits USING gin(to_tsvector('english', name));
+CREATE INDEX IF NOT EXISTS habits_description_search_idx ON public.habits USING gin(to_tsvector('english', description));
 
 -- Add comments for documentation
-COMMENT ON INDEX tasks_user_upcoming_idx IS 'Optimizes queries for upcoming tasks in Today screen';
-COMMENT ON INDEX events_user_today_idx IS 'Optimizes queries for todays events';
-COMMENT ON INDEX tasks_household_active_idx IS 'Optimizes queries for active shared household tasks';
-COMMENT ON INDEX tasks_list_covering_idx IS 'Covering index for task list queries with frequently selected columns';
-COMMENT ON INDEX events_today_covering_idx IS 'Covering index for today events with frequently selected columns';
-COMMENT ON INDEX integrations_token_expiry_idx IS 'Supports token refresh operations for calendar integrations';
+COMMENT ON INDEX public.profiles_email_idx IS 'Index for email-based user lookups';
+COMMENT ON INDEX public.tasks_user_id_due_date_idx IS 'Index for user tasks sorted by due date';
+COMMENT ON INDEX public.events_user_id_start_time_idx IS 'Index for user events sorted by start time';
+COMMENT ON INDEX public.reminders_user_id_scheduled_time_idx IS 'Index for user reminders sorted by scheduled time';
+COMMENT ON INDEX public.nudges_user_id_type_idx IS 'Index for user nudges by type';
+COMMENT ON INDEX public.habits_user_id_category_idx IS 'Index for user habits by category';
+
+-- Performance monitoring views
+CREATE OR REPLACE VIEW public.performance_metrics AS
+SELECT 
+    schemaname,
+    tablename,
+    indexname,
+    idx_scan as index_scans,
+    idx_tup_read as tuples_read,
+    idx_tup_fetch as tuples_fetched
+FROM pg_stat_user_indexes
+WHERE schemaname = 'public'
+ORDER BY idx_scan DESC;
+
+COMMENT ON VIEW public.performance_metrics IS 'View for monitoring index usage and performance metrics';
