@@ -1,92 +1,73 @@
-import { createBrowserClient } from '@supabase/ssr'
-import { Database } from '@/types/database'
+import { createClient } from '@supabase/supabase-js'
 
-// Create a singleton supabase client for client-side operations
-// This client handles authentication state and persists sessions in localStorage
-export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+// Get environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// Validate environment variables
+if (!supabaseUrl) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
 }
 
-// Export a singleton instance for convenience
-export const supabase = createClient()
-
-// Type exports for convenience
-export type SupabaseClient = ReturnType<typeof createClient>
-
-// Helper function to handle auth state changes
-export function handleAuthStateChange(callback: (user: any) => void) {
-  const client = createClient()
-  
-  // Get initial session
-  client.auth.getSession().then(({ data: { session } }) => {
-    callback(session?.user ?? null)
-  })
-
-  // Listen for auth state changes
-  const {
-    data: { subscription },
-  } = client.auth.onAuthStateChange((_event, session) => {
-    callback(session?.user ?? null)
-  })
-
-  return () => subscription.unsubscribe()
+if (!supabaseAnonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable')
 }
 
-// Helper function to check if user is authenticated
-export async function getCurrentUser() {
-  const client = createClient()
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser()
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    // Automatically refresh the session
+    autoRefreshToken: true,
+    // Persist the session in localStorage
+    persistSession: true,
+    // Detect session in URL (for magic links)
+    detectSessionInUrl: true
+  },
+  // Global headers for all requests
+  global: {
+    headers: {
+      'X-Client-Info': 'clearday-web'
+    }
+  }
+})
 
+// Export types for convenience
+export type { User, Session, AuthError } from '@supabase/supabase-js'
+
+// Helper function to get the current user
+export const getCurrentUser = async () => {
+  const { data: { user }, error } = await supabase.auth.getUser()
   if (error) {
-    console.error('Error getting current user:', error.message)
+    console.error('Error getting current user:', error)
     return null
   }
-
   return user
 }
 
-// Helper function to get current session
-export async function getCurrentSession() {
-  const client = createClient()
-  const {
-    data: { session },
-    error,
-  } = await client.auth.getSession()
-
+// Helper function to get the current session
+export const getCurrentSession = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession()
   if (error) {
-    console.error('Error getting current session:', error.message)
+    console.error('Error getting current session:', error)
     return null
   }
-
   return session
 }
 
 // Helper function to sign out
-export async function signOut() {
-  const client = createClient()
-  const { error } = await client.auth.signOut()
-
+export const signOut = async () => {
+  const { error } = await supabase.auth.signOut()
   if (error) {
-    console.error('Error signing out:', error.message)
+    console.error('Error signing out:', error)
     throw error
   }
 }
 
-// Helper function to refresh session
-export async function refreshSession() {
-  const client = createClient()
-  const { data, error } = await client.auth.refreshSession()
-
-  if (error) {
-    console.error('Error refreshing session:', error.message)
-    throw error
-  }
-
-  return data.session
+// Helper function to check if user is authenticated
+export const isAuthenticated = async () => {
+  const user = await getCurrentUser()
+  return user !== null
 }
+
+// Export the client as default for convenience
+export default supabase
