@@ -1,9 +1,12 @@
 import { Button } from '@/components/ui/button'
+import { Header } from '@/components/layouts/header'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <div className="container mx-auto px-4 py-16">
+    <>
+      <Header />
+      <main className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+        <div className="container mx-auto px-4 py-16">
         {/* Hero Section */}
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6">
@@ -57,5 +60,6 @@ export default function Home() {
         </div>
       </div>
     </main>
+    </>
   )
 }

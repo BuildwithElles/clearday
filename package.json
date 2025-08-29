@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "generate-types": "supabase gen types typescript --project-id [PROJECT_ID] > ./types/database.ts",
+    "test:e2e": "playwright test",
+    "test:debug": "playwright test --ui",
+    "generate-types": "supabase gen types typescript --local > ./types/database.ts",
     "db-push": "supabase db push",
     "db-reset": "supabase db reset",
     "edge-deploy": "supabase functions deploy",
@@ -51,6 +53,7 @@
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "@types/node": "^20.10.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
