@@ -24,7 +24,7 @@ test.describe('Example Tests', () => {
     
     // Check main sections exist
     await expect(page.locator('main')).toBeVisible();
-    await expect(page.locator('.container')).toBeVisible();
+    await expect(page.locator('main .container')).toBeVisible();
     
     // Check that features section exists
     const featuresSection = page.locator('.grid');

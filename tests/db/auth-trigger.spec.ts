@@ -172,3 +172,4 @@ test.describe('Auth Trigger Migration Tests', () => {
     expect(migrationContent).toContain('RETURN NEW');
   });
 });
+

@@ -116,3 +116,4 @@ COMMENT ON COLUMN public.nudges.shown_at IS 'When the nudge was first shown to t
 COMMENT ON COLUMN public.nudges.acted_on IS 'Whether the user acted on the nudge suggestion';
 COMMENT ON COLUMN public.nudges.acted_at IS 'When the user acted on the nudge (auto-set when acted_on becomes true)';
 COMMENT ON COLUMN public.nudges.expires_at IS 'When the nudge expires and should no longer be shown';
+

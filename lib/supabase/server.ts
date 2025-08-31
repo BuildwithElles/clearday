@@ -1,208 +1,165 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { Database } from '@/types/database'
 
-// Server-side Supabase client for use in:
-// - Server Components
-// - Route Handlers  
-// - Server Actions
-// - Middleware
+// Get environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
-// Create a server client with cookie handling for authentication
+// Validate environment variables
+if (!supabaseUrl) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
+}
+
+if (!supabaseServiceKey) {
+  throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+}
+
+// Create server-side Supabase client for React Server Components
 export function createClient() {
   const cookieStore = cookies()
 
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options })
-          } catch (error) {
-            // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
-            // The `delete` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
+  return createServerClient<Database>(supabaseUrl, supabaseServiceKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll()
       },
-    }
-  )
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        } catch {
+          // The `setAll` method was called from a Server Component.
+          // This can be ignored if you have middleware refreshing
+          // user sessions.
+        }
+      },
+    },
+  })
 }
 
-// Admin client using service role key for server-side operations
-// Use this for operations that bypass RLS (admin functions, triggers, etc.)
+// Create server-side Supabase client with service role for admin operations
 export function createAdminClient() {
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
+  return createServerClient<Database>(supabaseUrl, supabaseServiceKey, {
+    cookies: {
+      getAll() {
+        return []
       },
-      cookies: {
-        get() {
-          return undefined
-        },
-        set() {
-          // no-op for admin client
-        },
-        remove() {
-          // no-op for admin client
-        },
+      setAll() {
+        // No-op for admin client
       },
-    }
-  )
+    },
+  })
 }
 
-// Type exports
-export type ServerSupabaseClient = ReturnType<typeof createClient>
-export type AdminSupabaseClient = ReturnType<typeof createAdminClient>
-
-// Helper function to get current user from server
+// Helper function to get the current user in server components
 export async function getCurrentUser() {
   const supabase = createClient()
   
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error) {
-    console.error('Error getting current user:', error.message)
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error) {
+      console.error('Error getting current user in server component:', error)
+      return null
+    }
+    
+    return user
+  } catch (error) {
+    console.error('Unexpected error getting current user:', error)
     return null
   }
-
-  return user
 }
 
-// Helper function to get current session from server
+// Helper function to get the current session in server components
 export async function getCurrentSession() {
   const supabase = createClient()
   
-  const {
-    data: { session },
-    error,
-  } = await supabase.auth.getSession()
-
-  if (error) {
-    console.error('Error getting current session:', error.message)
-    return null
-  }
-
-  return session
-}
-
-// Helper function to get user profile
-export async function getUserProfile(userId?: string) {
-  const supabase = createClient()
-  
-  let targetUserId = userId
-  if (!targetUserId) {
-    const user = await getCurrentUser()
-    if (!user) return null
-    targetUserId = user.id
-  }
-
-  const { data: profile, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', targetUserId)
-    .single()
-
-  if (error) {
-    console.error('Error getting user profile:', error.message)
-    return null
-  }
-
-  return profile
-}
-
-// Helper function to require authentication (throws if not authenticated)
-export async function requireAuth() {
-  const user = await getCurrentUser()
-  
-  if (!user) {
-    throw new Error('Authentication required')
-  }
-  
-  return user
-}
-
-// Helper function to check if user has household access
-export async function getUserHousehold(userId?: string) {
-  const supabase = createClient()
-  
-  let targetUserId = userId
-  if (!targetUserId) {
-    const user = await requireAuth()
-    targetUserId = user.id
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select(`
-      household_id,
-      households (
-        id,
-        name,
-        owner_id,
-        created_at,
-        updated_at
-      )
-    `)
-    .eq('id', targetUserId)
-    .single()
-
-  if (profileError) {
-    console.error('Error getting user household:', profileError.message)
-    return null
-  }
-
-  return profile.households
-}
-
-// Helper function for admin operations (bypasses RLS)
-export async function withAdminAccess<T>(
-  operation: (client: AdminSupabaseClient) => Promise<T>
-): Promise<T> {
-  const adminClient = createAdminClient()
-  return await operation(adminClient)
-}
-
-// Wrapper for database operations with error handling
-export async function withSupabase<T>(
-  operation: (client: ServerSupabaseClient) => Promise<{ data: T; error: any }>
-): Promise<{ data: T | null; error: string | null }> {
   try {
-    const supabase = createClient()
-    const result = await operation(supabase)
+    const { data: { session }, error } = await supabase.auth.getSession()
     
-    if (result.error) {
-      console.error('Supabase operation error:', result.error)
-      return { data: null, error: result.error.message }
+    if (error) {
+      console.error('Error getting current session in server component:', error)
+      return null
     }
     
-    return { data: result.data, error: null }
+    return session
   } catch (error) {
-    console.error('Unexpected error in Supabase operation:', error)
-    return { 
-      data: null, 
-      error: error instanceof Error ? error.message : 'Unknown error occurred' 
-    }
+    console.error('Unexpected error getting current session:', error)
+    return null
   }
 }
+
+// Helper function to check if user is authenticated in server components
+export async function isAuthenticated() {
+  const user = await getCurrentUser()
+  return user !== null
+}
+
+// Helper function to get user profile data
+export async function getUserProfile(userId: string) {
+  const supabase = createClient()
+  
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+    
+    if (error) {
+      console.error('Error getting user profile:', error)
+      return null
+    }
+    
+    return profile
+  } catch (error) {
+    console.error('Unexpected error getting user profile:', error)
+    return null
+  }
+}
+
+// Helper function to get user's household data
+export async function getUserHousehold(userId: string) {
+  const supabase = createClient()
+  
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        households (*)
+      `)
+      .eq('id', userId)
+      .single()
+    
+    if (error) {
+      console.error('Error getting user household:', error)
+      return null
+    }
+    
+    return profile?.households
+  } catch (error) {
+    console.error('Unexpected error getting user household:', error)
+    return null
+  }
+}
+
+// Helper function to check if user has specific permissions
+export async function hasPermission(userId: string, permission: string) {
+  const profile = await getUserProfile(userId)
+  
+  if (!profile) {
+    return false
+  }
+  
+  // Check user's role and permissions
+  // This can be expanded based on your permission system
+  return profile.role === 'admin' || profile.permissions?.includes(permission)
+}
+
+// Export types for convenience
+export type { User, Session, AuthError } from '@supabase/supabase-js'
+export type SupabaseClient = ReturnType<typeof createClient>
+export type AdminClient = ReturnType<typeof createAdminClient>

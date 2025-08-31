@@ -536,3 +536,4 @@ test.describe('Performance Indexes Migration Tests', () => {
     });
   });
 });
+

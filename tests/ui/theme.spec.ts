@@ -44,12 +44,12 @@ test.describe('UI Theme Tests', () => {
     
     // Test desktop view
     await page.setViewportSize({ width: 1920, height: 1080 });
-    const desktopLayout = await page.locator('.container').isVisible();
+    const desktopLayout = await page.locator('main .container').isVisible();
     expect(desktopLayout).toBe(true);
     
     // Test mobile view
     await page.setViewportSize({ width: 375, height: 667 });
-    const mobileLayout = await page.locator('.container').isVisible();
+    const mobileLayout = await page.locator('main .container').isVisible();
     expect(mobileLayout).toBe(true);
   });
 });

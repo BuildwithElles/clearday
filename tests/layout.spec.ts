@@ -73,3 +73,4 @@ test.describe('Base Layout Tests', () => {
     await expect(page.locator('body')).toBeVisible();
   });
 });
+

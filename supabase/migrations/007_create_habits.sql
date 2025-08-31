@@ -118,3 +118,4 @@ COMMENT ON COLUMN public.habits.auto_rules IS 'JSON rules for automatic habit de
 COMMENT ON COLUMN public.habits.reminder_time IS 'Time of day to send reminders for this habit';
 COMMENT ON COLUMN public.habits.category IS 'Category of the habit (e.g., "health", "productivity", "eco")';
 COMMENT ON COLUMN public.habits.impact_per_completion IS 'CO2 impact in kilograms per habit completion';
+

@@ -364,3 +364,4 @@ test.describe('Nudges Table Migration Tests', () => {
     expect(migrationContent).toContain('CREATE TRIGGER');
   });
 });
+

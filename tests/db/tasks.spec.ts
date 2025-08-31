@@ -296,3 +296,4 @@ test.describe('Tasks Table Migration Tests', () => {
     expect(migrationContent).toContain('CREATE INDEX');
   });
 });
+
