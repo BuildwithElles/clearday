@@ -1,0 +1,42 @@
+[33mcommit 5875d2338c0f0fd5f36d32d0fa3afcbc0ea357f4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Buildwithelles <lobeng247@gmail.com>
+Date:   Sun Aug 31 14:56:53 2025 +0100
+
+    feat: generate comprehensive TypeScript types from database schema
+
+ app/page.tsx                                 |  92 [32m++[m[31m--[m
+ components/layouts/header.tsx                |   1 [32m+[m
+ lib/supabase/server.ts                       | 285 [32m++++++[m[31m-------[m
+ package-lock.json                            |   2 [32m+[m[31m-[m
+ package.json                                 |   2 [32m+[m[31m-[m
+ playwright-report/index.html                 |  76 [32m++++[m
+ scripts/test-git.js                          |  96 [32m+++++[m
+ status.md.txt                                |  94 [32m+++[m[31m-[m
+ supabase/migrations/005_create_reminders.sql | 111 [32m+++++[m
+ supabase/migrations/006_create_nudges.sql    |   1 [32m+[m
+ supabase/migrations/007_create_habits.sql    |   1 [32m+[m
+ tatus --porcelain                            |  27 [32m++[m
+ test-results/.last-run.json                  |   4 [32m+[m
+ tests/db/auth-trigger.spec.ts                |   1 [32m+[m
+ tests/db/events.spec.ts                      | 341 [32m+++++++++++++++[m
+ tests/db/nudges.spec.ts                      |   1 [32m+[m
+ tests/db/performance.spec.ts                 |   1 [32m+[m
+ tests/db/profiles.spec.ts                    | 163 [32m+++++++[m
+ tests/db/reminders.spec.ts                   | 387 [32m+++++++++++++++++[m
+ tests/db/tasks.spec.ts                       |   1 [32m+[m
+ tests/example.spec.ts                        |   2 [32m+[m[31m-[m
+ tests/fixtures/data.ts                       | 351 [32m+++++++++++++++[m
+ tests/git.spec.ts                            |  52 [32m+++[m
+ tests/layout.spec.ts                         |   1 [32m+[m
+ tests/lib/supabase-server.spec.ts            | 615 [32m+++++++++++++++++++++++++++[m
+ tests/routes.spec.ts                         |   1 [32m+[m
+ tests/structure.spec.ts                      |   1 [32m+[m
+ tests/supabase/cli.spec.ts                   | 125 [32m++++++[m
+ tests/types.spec.ts                          | 111 [32m+++++[m
+ tests/types/database.spec.ts                 |   0
+ tests/ui/button.spec.ts                      |   1 [32m+[m
+ tests/ui/theme.spec.ts                       |   4 [32m+[m[31m-[m
+ tests/utils/helpers.spec.ts                  | 344 [32m+++++++++++++++[m
+ tests/utils/helpers.ts                       | 341 [32m+++++++++++++++[m
+ types/database.ts                            | 473 [32m+++++++++++++++++++[m[31m-[m
+ 35 files changed, 3881 insertions(+), 228 deletions(-)
