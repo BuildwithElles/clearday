@@ -53,9 +53,9 @@ test.describe('Auth Layout', () => {
   test('should have proper background and styling', async ({ page }) => {
     await page.goto('/login')
     
-    // Check background gradient
-    const body = page.locator('body')
-    await expect(body).toHaveClass(/bg-gradient-to-br from-slate-50 to-blue-50/)
+    // Check background gradient (the gradient is applied to the main container, not body)
+    const mainContainer = page.locator('main').locator('xpath=..')
+    await expect(mainContainer).toHaveClass(/bg-gradient-to-br from-slate-50 to-blue-50/)
     
     // Check auth card styling
     const authCard = page.locator('main .bg-white.rounded-xl')

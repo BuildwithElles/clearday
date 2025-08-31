@@ -1,25 +1,4 @@
 {
-  "status": "failed",
-  "failedTests": [
-    "fc125fdbdcf217669d5f-79f83df1e70cfc76646f",
-    "fc125fdbdcf217669d5f-23d9a78f339f96e6accd",
-    "fc125fdbdcf217669d5f-0982a532b68c375d9fdf",
-    "fc125fdbdcf217669d5f-705da970b380515aec94",
-    "fc125fdbdcf217669d5f-e5bb6c47170dc6a7aaa0",
-    "fc125fdbdcf217669d5f-f6df3f054573f6fc654c",
-    "fc125fdbdcf217669d5f-95dfdfaafd7a04161a4e",
-    "fc125fdbdcf217669d5f-50850fc1dae00fd5179f",
-    "fc125fdbdcf217669d5f-acaebe6623030ed3ea1f",
-    "fc125fdbdcf217669d5f-4880ea7ade5753f85674",
-    "fc125fdbdcf217669d5f-671fa1244b94d84c51d9",
-    "fc125fdbdcf217669d5f-54b75a90e5fb9647a2bd",
-    "fc125fdbdcf217669d5f-666d9917a9faf8c3bc9f",
-    "fc125fdbdcf217669d5f-9e847f155e55e0f85940",
-    "fc125fdbdcf217669d5f-26cdc2a98af7e6bea103",
-    "fc125fdbdcf217669d5f-e1bc94af670f1a32bc11",
-    "fc125fdbdcf217669d5f-833c8b68f17dbc52ee1c",
-    "fc125fdbdcf217669d5f-b7384ed968c5867df493",
-    "fc125fdbdcf217669d5f-cea8585cfce5a7a277fd",
-    "fc125fdbdcf217669d5f-2354278f97fa80da0ddc"
-  ]
+  "status": "passed",
+  "failedTests": []
 }
