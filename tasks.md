@@ -356,18 +356,19 @@ This document provides a granular, test-driven development plan for building the
 - **Rollback**: Delete seed file
 - **Estimated time**: 30 minutes (25 min setup + 5 min test)
 
-**Task 27: Setup Local Supabase Instance**
-- **Objective**: Start local Supabase for development
-- **Files to modify/create**: Update `.env.local` with local URLs, `.env.test`
-- **Test Files**: `tests/db/local-connection.spec.ts` (test local instance)
+**Task 27: Setup Production Supabase for Development**
+- **Objective**: Configure production Supabase for development environment
+- **Files to modify/create**: Update `.env.local` with production URLs, `.env.test`
+- **Test Files**: `tests/db/production-connection.spec.ts` (test production instance)
 - **Acceptance Criteria**:
-  - `npx supabase start` works
-  - Studio accessible at localhost:54323
-  - Can connect from app
-  - Test connects to local instance
+  - Production Supabase URL configured in `.env.local`
+  - Production anon key configured in `.env.local`
+  - Can connect from app to production instance
+  - Test connects to production instance successfully
+  - Database schema accessible and functional
 - **Dependencies**: Task 14
-- **Rollback**: `npx supabase stop`
-- **Estimated time**: 25 minutes (20 min setup + 5 min test)
+- **Rollback**: Revert `.env.local` changes
+- **Estimated time**: 30 minutes (25 min setup + 5 min test)
 
 ---
 

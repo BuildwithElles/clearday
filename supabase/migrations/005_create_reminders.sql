@@ -94,7 +94,7 @@ CREATE INDEX IF NOT EXISTS reminders_dismissed_idx ON public.reminders(dismissed
 CREATE INDEX IF NOT EXISTS reminders_snoozed_until_idx ON public.reminders(snoozed_until) WHERE snoozed_until IS NOT NULL;
 CREATE INDEX IF NOT EXISTS reminders_strategy_idx ON public.reminders(strategy);
 CREATE INDEX IF NOT EXISTS reminders_effectiveness_score_idx ON public.reminders(effectiveness_score) WHERE effectiveness_score IS NOT NULL;
-CREATE INDEX IF NOT EXISTS reminders_pending_idx ON public.reminders(scheduled_time) WHERE dismissed = false AND (snoozed_until IS NULL OR snoozed_until <= NOW());
+CREATE INDEX IF NOT EXISTS reminders_pending_idx ON public.reminders(scheduled_time) WHERE dismissed = false AND snoozed_until IS NULL;
 
 -- Add comments for documentation
 COMMENT ON TABLE public.reminders IS 'User reminders for tasks, events, and habits with smart scheduling and effectiveness tracking';

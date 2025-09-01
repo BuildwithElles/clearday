@@ -8,11 +8,11 @@ CREATE INDEX IF NOT EXISTS profiles_created_at_idx ON public.profiles(created_at
 
 -- Tasks table indexes
 CREATE INDEX IF NOT EXISTS tasks_user_id_due_date_idx ON public.tasks(user_id, due_date);
-CREATE INDEX IF NOT EXISTS tasks_user_id_status_idx ON public.tasks(user_id, status);
+CREATE INDEX IF NOT EXISTS tasks_user_id_completed_idx ON public.tasks(user_id, completed);
 CREATE INDEX IF NOT EXISTS tasks_user_id_priority_idx ON public.tasks(user_id, priority);
 CREATE INDEX IF NOT EXISTS tasks_household_id_idx ON public.tasks(household_id) WHERE household_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS tasks_due_date_idx ON public.tasks(due_date);
-CREATE INDEX IF NOT EXISTS tasks_status_idx ON public.tasks(status);
+CREATE INDEX IF NOT EXISTS tasks_completed_idx ON public.tasks(completed);
 CREATE INDEX IF NOT EXISTS tasks_priority_idx ON public.tasks(priority);
 CREATE INDEX IF NOT EXISTS tasks_completed_at_idx ON public.tasks(completed_at) WHERE completed_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS tasks_created_at_idx ON public.tasks(created_at);
@@ -31,7 +31,7 @@ CREATE INDEX IF NOT EXISTS events_updated_at_idx ON public.events(updated_at);
 -- Integrations table indexes
 CREATE INDEX IF NOT EXISTS integrations_user_id_provider_idx ON public.integrations(user_id, provider);
 CREATE INDEX IF NOT EXISTS integrations_provider_idx ON public.integrations(provider);
-CREATE INDEX IF NOT EXISTS integrations_active_idx ON public.integrations(active);
+CREATE INDEX IF NOT EXISTS integrations_user_id_idx ON public.integrations(user_id);
 CREATE INDEX IF NOT EXISTS integrations_created_at_idx ON public.integrations(created_at);
 CREATE INDEX IF NOT EXISTS integrations_updated_at_idx ON public.integrations(updated_at);
 
@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS reminders_type_idx ON public.reminders(type);
 CREATE INDEX IF NOT EXISTS reminders_dismissed_idx ON public.reminders(dismissed);
 CREATE INDEX IF NOT EXISTS reminders_task_id_idx ON public.reminders(task_id) WHERE task_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS reminders_event_id_idx ON public.reminders(event_id) WHERE event_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS reminders_habit_id_idx ON public.reminders(habit_id) WHERE habit_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS reminders_type_idx ON public.reminders(type);
 CREATE INDEX IF NOT EXISTS reminders_created_at_idx ON public.reminders(created_at);
 CREATE INDEX IF NOT EXISTS reminders_updated_at_idx ON public.reminders(updated_at);
 
@@ -56,7 +56,6 @@ CREATE INDEX IF NOT EXISTS nudges_expires_at_idx ON public.nudges(expires_at);
 CREATE INDEX IF NOT EXISTS nudges_shown_at_idx ON public.nudges(shown_at) WHERE shown_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS nudges_acted_at_idx ON public.nudges(acted_at) WHERE acted_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS nudges_created_at_idx ON public.nudges(created_at);
-CREATE INDEX IF NOT EXISTS nudges_updated_at_idx ON public.nudges(updated_at);
 
 -- Habits table indexes (already created in previous migration, but adding additional ones)
 CREATE INDEX IF NOT EXISTS habits_user_id_category_idx ON public.habits(user_id, category);
@@ -67,21 +66,21 @@ CREATE INDEX IF NOT EXISTS habits_created_at_idx ON public.habits(created_at);
 CREATE INDEX IF NOT EXISTS habits_updated_at_idx ON public.habits(updated_at);
 
 -- Composite indexes for complex queries
-CREATE INDEX IF NOT EXISTS tasks_user_status_due_date_idx ON public.tasks(user_id, status, due_date);
+CREATE INDEX IF NOT EXISTS tasks_user_completed_due_date_idx ON public.tasks(user_id, completed, due_date);
 CREATE INDEX IF NOT EXISTS events_user_start_end_idx ON public.events(user_id, start_time, end_time);
 CREATE INDEX IF NOT EXISTS reminders_user_scheduled_dismissed_idx ON public.reminders(user_id, scheduled_time, dismissed);
 CREATE INDEX IF NOT EXISTS nudges_user_type_expires_idx ON public.nudges(user_id, type, expires_at);
 CREATE INDEX IF NOT EXISTS habits_user_frequency_streak_idx ON public.habits(user_id, frequency, current_streak);
 
 -- Partial indexes for active/current data
-CREATE INDEX IF NOT EXISTS tasks_active_user_idx ON public.tasks(user_id, due_date) WHERE status != 'completed';
-CREATE INDEX IF NOT EXISTS events_upcoming_user_idx ON public.events(user_id, start_time) WHERE start_time > NOW();
+CREATE INDEX IF NOT EXISTS tasks_active_user_idx ON public.tasks(user_id, due_date) WHERE completed = false;
+CREATE INDEX IF NOT EXISTS events_user_start_time_idx ON public.events(user_id, start_time);
 CREATE INDEX IF NOT EXISTS reminders_pending_user_idx ON public.reminders(user_id, scheduled_time) WHERE dismissed = false;
-CREATE INDEX IF NOT EXISTS nudges_active_user_idx ON public.nudges(user_id, created_at) WHERE expires_at > NOW() OR expires_at IS NULL;
+CREATE INDEX IF NOT EXISTS nudges_user_created_idx ON public.nudges(user_id, created_at);
 CREATE INDEX IF NOT EXISTS habits_active_user_idx ON public.habits(user_id, current_streak) WHERE current_streak > 0;
 
 -- Text search indexes for search functionality
-CREATE INDEX IF NOT EXISTS tasks_name_search_idx ON public.tasks USING gin(to_tsvector('english', name));
+CREATE INDEX IF NOT EXISTS tasks_title_search_idx ON public.tasks USING gin(to_tsvector('english', title));
 CREATE INDEX IF NOT EXISTS tasks_description_search_idx ON public.tasks USING gin(to_tsvector('english', description));
 CREATE INDEX IF NOT EXISTS events_title_search_idx ON public.events USING gin(to_tsvector('english', title));
 CREATE INDEX IF NOT EXISTS events_description_search_idx ON public.events USING gin(to_tsvector('english', description));
@@ -98,10 +97,10 @@ COMMENT ON INDEX public.habits_user_id_category_idx IS 'Index for user habits by
 
 -- Performance monitoring views
 CREATE OR REPLACE VIEW public.performance_metrics AS
-SELECT 
+SELECT
     schemaname,
-    tablename,
-    indexname,
+    relname as tablename,
+    indexrelname as indexname,
     idx_scan as index_scans,
     idx_tup_read as tuples_read,
     idx_tup_fetch as tuples_fetched

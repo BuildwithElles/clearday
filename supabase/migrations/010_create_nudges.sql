@@ -102,7 +102,7 @@ CREATE INDEX IF NOT EXISTS nudges_expires_at_idx ON public.nudges(expires_at) WH
 CREATE INDEX IF NOT EXISTS nudges_shown_at_idx ON public.nudges(shown_at) WHERE shown_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS nudges_action_type_idx ON public.nudges(action_type) WHERE action_type IS NOT NULL;
 CREATE INDEX IF NOT EXISTS nudges_impact_kg_idx ON public.nudges(impact_kg) WHERE impact_kg IS NOT NULL;
-CREATE INDEX IF NOT EXISTS nudges_active_idx ON public.nudges(created_at) WHERE acted_on = false AND (expires_at IS NULL OR expires_at > NOW());
+CREATE INDEX IF NOT EXISTS nudges_active_idx ON public.nudges(created_at) WHERE acted_on = false AND expires_at IS NULL;
 
 -- Add comments for documentation
 COMMENT ON TABLE public.nudges IS 'AI-powered suggestions for eco-friendly, healthy, and productive actions';
