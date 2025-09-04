@@ -1,17 +1,17 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function signUp(formData: FormData) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   // Extract form data
   const email = formData.get('email') as string
   const password = formData.get('password') as string
   const fullName = formData.get('fullName') as string
+
+  console.log('SignUp called with:', { email, fullName, hasPassword: !!password })
 
   if (!email || !password) {
     return { error: 'Email and password are required' }
@@ -19,6 +19,7 @@ export async function signUp(formData: FormData) {
 
   try {
     // Sign up the user
+    console.log('Calling Supabase auth.signUp...')
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -29,23 +30,19 @@ export async function signUp(formData: FormData) {
       },
     })
 
+    console.log('Supabase response:', { data, error })
+
     if (error) {
+      console.error('Supabase signup error:', error)
       return { error: error.message }
     }
 
     if (data.user) {
-      // Create profile for the new user
-      const { error: profileError } = await supabase.rpc('create_profile_for_user', {
-        user_id: data.user.id,
-        user_email: data.user.email!,
-        user_metadata: data.user.user_metadata || {}
-      })
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError)
-        // Don't fail the signup if profile creation fails
-        // The profile can be created later
-      }
+      console.log('User created successfully:', { id: data.user.id, email: data.user.email })
+      
+      // Note: Profile creation will be handled by Edge Functions or RPC calls
+      // For now, we'll just return success and let the profile be created later
+      // This ensures the signup process works even if profile creation fails
     }
 
     return { success: true, user: data.user }
@@ -56,8 +53,7 @@ export async function signUp(formData: FormData) {
 }
 
 export async function signIn(formData: FormData) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -77,19 +73,21 @@ export async function signIn(formData: FormData) {
     }
 
     if (data.user) {
+      // TODO: Uncomment when RPC functions are available in production
       // Ensure profile exists (create if it doesn't)
-      const { error: profileError } = await supabase.rpc('get_or_create_profile', {
-        user_id: data.user.id,
-        user_email: data.user.email!,
-        user_metadata: data.user.user_metadata || {}
-      })
+      // const { error: profileError } = await supabase.rpc('get_or_create_profile', {
+      //   user_id: data.user.id,
+      //   user_email: data.user.email!,
+      //   user_metadata: data.user.user_metadata || {}
+      // })
 
-      if (profileError) {
-        console.error('Profile retrieval/creation error:', profileError)
-      }
+      // if (profileError) {
+      //   console.error('Profile retrieval/creation error:', profileError)
+      // }
     }
 
-    return { success: true, user: data.user }
+    // Redirect to dashboard on successful login
+    redirect('/today')
   } catch (error) {
     console.error('Signin error:', error)
     return { error: 'An unexpected error occurred' }
@@ -97,8 +95,7 @@ export async function signIn(formData: FormData) {
 }
 
 export async function signOut() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   try {
     const { error } = await supabase.auth.signOut()
@@ -114,8 +111,7 @@ export async function signOut() {
 }
 
 export async function getCurrentUser() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   try {
     const { data: { user }, error } = await supabase.auth.getUser()
@@ -132,8 +128,7 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentProfile() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createClient()
 
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser()

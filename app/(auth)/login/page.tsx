@@ -1,18 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import LoginForm from '@/components/auth/LoginForm'
+import { signIn } from '@/app/actions/auth'
 
 export default function LoginPage() {
-  const handleLogin = async (data: { email: string; password: string }) => {
-    // This will be replaced with actual server action in Task #35
-    console.log('Login attempt:', data)
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // For now, just log the data
-    console.log('Login data received:', data)
-  }
-
   return (
     <div className="flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -37,7 +29,7 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <LoginForm onSubmit={handleLogin} />
+          <LoginForm action={signIn} />
           
           <div className="mt-6">
             <div className="relative">

@@ -33,13 +33,14 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>
 
 interface SignupFormProps {
-  onSubmit?: (data: SignupFormData) => void | Promise<void>
+  onSubmit?: (data: SignupFormData) => Promise<{ error?: string; success?: boolean } | void>
   isLoading?: boolean
   error?: string | null
 }
 
-export default function SignupForm({ onSubmit, isLoading = false, error }: SignupFormProps) {
+export default function SignupForm({ onSubmit, isLoading = false, error: initialError }: SignupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(initialError || null)
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -55,14 +56,25 @@ export default function SignupForm({ onSubmit, isLoading = false, error }: Signu
 
   const handleSubmit = async (data: SignupFormData) => {
     if (isSubmitting) return
-    
+
     setIsSubmitting(true)
     try {
       if (onSubmit) {
-        await onSubmit(data)
+        const result = await onSubmit(data)
+        
+        // Handle the response from the server action
+        if (result && result.error) {
+          // Set the error to display in the form
+          setError(result.error)
+        } else if (result && result.success) {
+          // Clear any previous errors on success
+          setError(null)
+          // TODO: Redirect to login or dashboard in Task #36
+        }
       }
     } catch (err) {
       console.error('Signup form submission error:', err)
+      setError('An unexpected error occurred')
     } finally {
       setIsSubmitting(false)
     }
@@ -170,10 +182,12 @@ export default function SignupForm({ onSubmit, isLoading = false, error }: Signu
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <Checkbox
+                <input
+                  type="checkbox"
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  onChange={(e) => field.onChange(e.target.checked)}
                   disabled={isFormSubmitting}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">

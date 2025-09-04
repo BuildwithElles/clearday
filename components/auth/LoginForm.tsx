@@ -23,13 +23,15 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>
 
 interface LoginFormProps {
+  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any } | void>
   onSubmit?: (data: LoginFormData) => void | Promise<void>
   isLoading?: boolean
   error?: string | null
 }
 
-export default function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps) {
+export default function LoginForm({ action, onSubmit, isLoading = false, error: initialError }: LoginFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(initialError || null)
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -45,11 +47,27 @@ export default function LoginForm({ onSubmit, isLoading = false, error }: LoginF
     
     setIsSubmitting(true)
     try {
-      if (onSubmit) {
+      if (action) {
+        // Use server action
+        const formData = new FormData()
+        formData.append('email', data.email)
+        formData.append('password', data.password)
+        
+        const result = await action(formData)
+        
+        if (result && result.error) {
+          setError(result.error)
+        } else if (result && result.success) {
+          setError(null)
+          // Success will be handled by redirect in server action
+        }
+      } else if (onSubmit) {
+        // Use traditional onSubmit
         await onSubmit(data)
       }
     } catch (err) {
       console.error('Login form submission error:', err)
+      setError('An unexpected error occurred')
     } finally {
       setIsSubmitting(false)
     }
