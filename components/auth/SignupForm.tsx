@@ -20,7 +20,7 @@ import {
 
 const signupSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string().min(1, 'Please confirm your password'),
   terms: z.boolean().refine((val) => val === true, {
@@ -34,15 +34,17 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>
 
 interface SignupFormProps {
-  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any } | void>
-  onSubmit?: (data: SignupFormData) => Promise<{ error?: string; success?: boolean } | void>
+  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any; field?: string } | void>
+  onSubmit?: (data: SignupFormData) => Promise<{ error?: string; success?: boolean; field?: string } | void>
   isLoading?: boolean
   error?: string | null
+  fieldError?: string | null
 }
 
-export default function SignupForm({ action, onSubmit, isLoading = false, error: initialError }: SignupFormProps) {
+export default function SignupForm({ action, onSubmit, isLoading = false, error: initialError, fieldError }: SignupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError || null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
@@ -53,7 +55,7 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
       confirmPassword: '',
       terms: false,
     },
-    mode: 'onBlur',
+    mode: 'onChange',
   })
 
   const handleSubmit = async (data: SignupFormData) => {
@@ -72,8 +74,12 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
 
         if (result && result.error) {
           setError(result.error)
+          if (result.field) {
+            setFieldErrors({ [result.field]: result.error })
+          }
         } else if (result && result.success) {
           setError(null)
+          setFieldErrors({})
           // Success will be handled by redirect in server action
         }
       } else if (onSubmit) {
@@ -84,15 +90,20 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
         if (result && result.error) {
           // Set the error to display in the form
           setError(result.error)
+          if (result.field) {
+            setFieldErrors({ [result.field]: result.error })
+          }
         } else if (result && result.success) {
           // Clear any previous errors on success
           setError(null)
+          setFieldErrors({})
           // TODO: Redirect to login or dashboard in Task #36
         }
       }
     } catch (err) {
       console.error('Signup form submission error:', err)
-      setError('An unexpected error occurred')
+      setError('An unexpected error occurred. Please try again.')
+      setFieldErrors({})
     } finally {
       setIsSubmitting(false)
     }
@@ -146,6 +157,9 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
                 />
               </FormControl>
               <FormMessage />
+              {fieldErrors.email && (
+                <p className="text-sm text-red-600 mt-1">{fieldErrors.email}</p>
+              )}
             </FormItem>
           )}
         />
@@ -169,6 +183,9 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
                 Password must be at least 8 characters long
               </FormDescription>
               <FormMessage />
+              {fieldErrors.password && (
+                <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>
+              )}
             </FormItem>
           )}
         />
@@ -200,12 +217,10 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0">
               <FormControl>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={field.value}
-                  onChange={(e) => field.onChange(e.target.checked)}
+                  onCheckedChange={field.onChange}
                   disabled={isFormSubmitting}
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">

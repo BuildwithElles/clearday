@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { parseAuthError, withRetry } from '@/lib/auth-errors'
 
 export async function signUp(formData: FormData) {
   const supabase = createClient()
@@ -18,23 +19,26 @@ export async function signUp(formData: FormData) {
   }
 
   try {
-    // Sign up the user
+    // Sign up the user with retry logic for network errors
     console.log('Calling Supabase auth.signUp...')
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    const { data, error } = await withRetry(() =>
+      supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
         },
-      },
-    })
+      })
+    )
 
     console.log('Supabase response:', { data, error })
 
     if (error) {
       console.error('Supabase signup error:', error)
-      return { error: error.message }
+      const parsedError = parseAuthError(error)
+      return { error: parsedError.userMessage, field: parsedError.field }
     }
 
     if (data.user) {
@@ -49,7 +53,8 @@ export async function signUp(formData: FormData) {
     redirect('/login?message=signup-success')
   } catch (error) {
     console.error('Signup error:', error)
-    return { error: 'An unexpected error occurred' }
+    const parsedError = parseAuthError(error)
+    return { error: parsedError.userMessage, field: parsedError.field }
   }
 }
 
@@ -64,13 +69,16 @@ export async function signIn(formData: FormData) {
   }
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { data, error } = await withRetry(() =>
+      supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+    )
 
     if (error) {
-      return { error: error.message }
+      const parsedError = parseAuthError(error)
+      return { error: parsedError.userMessage, field: parsedError.field }
     }
 
     if (data.user) {
@@ -91,7 +99,8 @@ export async function signIn(formData: FormData) {
     redirect('/today')
   } catch (error) {
     console.error('Signin error:', error)
-    return { error: 'An unexpected error occurred' }
+    const parsedError = parseAuthError(error)
+    return { error: parsedError.userMessage, field: parsedError.field }
   }
 }
 
@@ -99,15 +108,17 @@ export async function signOut() {
   const supabase = createClient()
 
   try {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await withRetry(() => supabase.auth.signOut())
     if (error) {
-      return { error: error.message }
+      const parsedError = parseAuthError(error)
+      return { error: parsedError.userMessage, field: parsedError.field }
     }
-    
+
     redirect('/')
   } catch (error) {
     console.error('Signout error:', error)
-    return { error: 'An unexpected error occurred' }
+    const parsedError = parseAuthError(error)
+    return { error: parsedError.userMessage, field: parsedError.field }
   }
 }
 

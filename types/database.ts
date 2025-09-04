@@ -517,4 +517,3 @@ export type NudgeType = Database['public']['Enums']['nudge_type']
 export type NudgeActionType = Database['public']['Enums']['nudge_action_type']
 export type HabitFrequency = Database['public']['Enums']['habit_frequency']
 export type HabitCategory = Database['public']['Enums']['habit_category']
-

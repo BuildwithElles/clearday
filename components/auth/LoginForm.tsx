@@ -17,22 +17,24 @@ import {
 } from '@/components/ui/form'
 
 const loginSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.string().min(1, 'Email is required').email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 })
 
 type LoginFormData = z.infer<typeof loginSchema>
 
 interface LoginFormProps {
-  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any } | void>
+  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any; field?: string } | void>
   onSubmit?: (data: LoginFormData) => void | Promise<void>
   isLoading?: boolean
   error?: string | null
+  fieldError?: string | null
 }
 
-export default function LoginForm({ action, onSubmit, isLoading = false, error: initialError }: LoginFormProps) {
+export default function LoginForm({ action, onSubmit, isLoading = false, error: initialError, fieldError }: LoginFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError || null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -40,7 +42,7 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
       email: '',
       password: '',
     },
-    mode: 'onBlur',
+    mode: 'onChange',
   })
 
   const handleSubmit = async (data: LoginFormData) => {
@@ -58,8 +60,12 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
         
         if (result && result.error) {
           setError(result.error)
+          if (result.field) {
+            setFieldErrors({ [result.field]: result.error })
+          }
         } else if (result && result.success) {
           setError(null)
+          setFieldErrors({})
           // Success will be handled by redirect in server action
         }
       } else if (onSubmit) {
@@ -68,7 +74,8 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
       }
     } catch (err) {
       console.error('Login form submission error:', err)
-      setError('An unexpected error occurred')
+      setError('An unexpected error occurred. Please try again.')
+      setFieldErrors({})
     } finally {
       setIsSubmitting(false)
     }
@@ -102,6 +109,9 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
                 />
               </FormControl>
               <FormMessage />
+              {fieldErrors.email && (
+                <p className="text-sm text-red-600 mt-1">{fieldErrors.email}</p>
+              )}
             </FormItem>
           )}
         />
@@ -122,6 +132,9 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
                 />
               </FormControl>
               <FormMessage />
+              {fieldErrors.password && (
+                <p className="text-sm text-red-600 mt-1">{fieldErrors.password}</p>
+              )}
             </FormItem>
           )}
         />
