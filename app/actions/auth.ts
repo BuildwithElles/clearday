@@ -39,13 +39,14 @@ export async function signUp(formData: FormData) {
 
     if (data.user) {
       console.log('User created successfully:', { id: data.user.id, email: data.user.email })
-      
+
       // Note: Profile creation will be handled by Edge Functions or RPC calls
       // For now, we'll just return success and let the profile be created later
       // This ensures the signup process works even if profile creation fails
     }
 
-    return { success: true, user: data.user }
+    // Redirect to login page on successful signup
+    redirect('/login?message=signup-success')
   } catch (error) {
     console.error('Signup error:', error)
     return { error: 'An unexpected error occurred' }

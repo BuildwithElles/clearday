@@ -5,41 +5,6 @@ import SignupForm from '@/components/auth/SignupForm'
 import { signUp } from '@/app/actions/auth'
 
 export default function SignupPage() {
-  const handleSignup = async (data: { 
-    fullName: string; 
-    email: string; 
-    password: string; 
-    confirmPassword: string; 
-    terms: boolean 
-  }) => {
-    try {
-      // Create FormData for server action
-      const formData = new FormData()
-      formData.append('email', data.email)
-      formData.append('password', data.password)
-      formData.append('fullName', data.fullName)
-      
-      // Call the server action
-      const result = await signUp(formData)
-      
-      if (result.error) {
-        // Handle error - this will be displayed in the form
-        console.error('Signup error:', result.error)
-        return { error: result.error }
-      }
-      
-      if (result.success) {
-        // Handle success - redirect to login or dashboard
-        console.log('Signup successful:', result.user)
-        // For now, just return success - we'll add redirect logic in Task #36
-        return { success: true }
-      }
-    } catch (error) {
-      console.error('Signup error:', error)
-      return { error: 'An unexpected error occurred' }
-    }
-  }
-
   return (
     <>
       <div className="text-center mb-6">
@@ -55,8 +20,8 @@ export default function SignupPage() {
         </p>
       </div>
 
-      <SignupForm onSubmit={handleSignup} />
-      
+      <SignupForm action={signUp} />
+
       <div className="mt-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center">

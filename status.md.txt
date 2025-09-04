@@ -3,9 +3,9 @@
 
 ## Current Progress
 - **Phase**: Authentication
-- **Current Task**: #36 - Connect Forms to Server Actions
-- **Last Successful Task**: #35
-- **Next Task**: #37
+- **Current Task**: #37 - Create Auth Context Provider
+- **Last Successful Task**: #36
+- **Next Task**: #38
 
 ## Task Status
 
@@ -47,13 +47,12 @@
 - Task #33: Create Signup Form Component
 - Task #34: Implement Signup Server Action
 - Task #35: Implement Login Server Action
+- Task #36: Connect Forms to Server Actions
 
 ### 🔄 In Progress
-- Task #36: Connect Forms to Server Actions
+- Task #37: Create Auth Context Provider
 
 ### ⏳ Pending
-- Task #35: Implement Login Server Action
-- Task #36: Connect Forms to Server Actions
 - Task #37: Create Auth Context Provider
 - Task #38: Add Middleware for Protected Routes
 - Task #39: Create Dashboard Layout

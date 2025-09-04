@@ -33,12 +33,13 @@ const signupSchema = z.object({
 type SignupFormData = z.infer<typeof signupSchema>
 
 interface SignupFormProps {
+  action?: (formData: FormData) => Promise<{ error?: string; success?: boolean; user?: any } | void>
   onSubmit?: (data: SignupFormData) => Promise<{ error?: string; success?: boolean } | void>
   isLoading?: boolean
   error?: string | null
 }
 
-export default function SignupForm({ onSubmit, isLoading = false, error: initialError }: SignupFormProps) {
+export default function SignupForm({ action, onSubmit, isLoading = false, error: initialError }: SignupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(initialError || null)
 
@@ -59,9 +60,25 @@ export default function SignupForm({ onSubmit, isLoading = false, error: initial
 
     setIsSubmitting(true)
     try {
-      if (onSubmit) {
+      if (action) {
+        // Use server action
+        const formData = new FormData()
+        formData.append('email', data.email)
+        formData.append('password', data.password)
+        formData.append('fullName', data.fullName)
+
+        const result = await action(formData)
+
+        if (result && result.error) {
+          setError(result.error)
+        } else if (result && result.success) {
+          setError(null)
+          // Success will be handled by redirect in server action
+        }
+      } else if (onSubmit) {
+        // Use traditional onSubmit
         const result = await onSubmit(data)
-        
+
         // Handle the response from the server action
         if (result && result.error) {
           // Set the error to display in the form
