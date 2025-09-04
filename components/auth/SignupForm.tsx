@@ -7,6 +7,7 @@ import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Spinner } from '@/components/ui/spinner'
 import {
   Form,
   FormControl,
@@ -242,7 +243,7 @@ export default function SignupForm({ action, onSubmit, isLoading = false, error:
         >
           {isFormSubmitting ? (
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <Spinner size="sm" className="text-white" />
               <span>Creating account...</span>
             </div>
           ) : (
