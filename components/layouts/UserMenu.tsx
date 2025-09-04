@@ -13,15 +13,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { LogOut, Settings, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { signOut } from '@/app/actions/auth'
 
 export function UserMenu() {
-  const { user, profile, signOut } = useAuth()
+  const { user, profile } = useAuth()
   const router = useRouter()
 
   const handleSignOut = async () => {
     try {
       await signOut()
-      router.push('/login')
+      // Redirect will be handled by the server action
     } catch (error) {
       console.error('Error signing out:', error)
     }
@@ -45,7 +46,7 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full" data-testid="user-menu">
           <Avatar className="h-8 w-8">
             <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
             <AvatarFallback>
