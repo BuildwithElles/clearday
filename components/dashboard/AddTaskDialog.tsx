@@ -30,6 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { createTask } from '@/app/actions/tasks';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
@@ -64,11 +65,13 @@ export function AddTaskDialog({ onTaskAdded }: AddTaskDialogProps) {
     try {
       setIsSubmitting(true);
 
-      // TODO: Call create task server action in Task 51
-      console.log('Creating task:', data);
-
-      // For now, just simulate success
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call create task server action
+      const result = await createTask({
+        title: data.title,
+        description: data.description,
+        due_date: data.due_date,
+        priority: data.priority,
+      });
 
       // Reset form and close dialog
       form.reset();
