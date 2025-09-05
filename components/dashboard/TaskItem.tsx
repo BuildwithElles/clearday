@@ -9,7 +9,7 @@ interface Task {
   id: string;
   title: string;
   completed: boolean;
-  priority: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
   due_time?: string;
   created_at: string;
 }
@@ -26,8 +26,10 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high':
+      case 'urgent':
         return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case 'high':
+        return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
       case 'medium':
         return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
       case 'low':

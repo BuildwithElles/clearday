@@ -1,0 +1,67 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "CD ClearDay" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e8] [cursor=pointer]: CD
+        - generic [ref=e9] [cursor=pointer]: ClearDay
+    - main [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - heading "Create your account" [level=1] [ref=e14]
+            - paragraph [ref=e15]:
+              - text: Or
+              - link "sign in to your existing account" [ref=e16] [cursor=pointer]:
+                - /url: /login
+          - generic [ref=e17]:
+            - generic [ref=e18]: An unexpected error occurred. Please try again.
+            - generic [ref=e19]:
+              - generic [ref=e20]: Full Name
+              - textbox "Full Name" [ref=e21]: Test User
+            - generic [ref=e22]:
+              - generic [ref=e23]: Email
+              - textbox "Email" [ref=e24]: test-add-task-1757070487013@example.com
+            - generic [ref=e25]:
+              - generic [ref=e26]: Password
+              - textbox "Password" [ref=e27]: TestPassword123!
+              - paragraph [ref=e28]: Password must be at least 8 characters long
+            - generic [ref=e29]:
+              - generic [ref=e30]: Confirm Password
+              - textbox "Confirm Password" [ref=e31]: TestPassword123!
+            - generic [ref=e32]:
+              - checkbox "I agree to the Terms and Conditions and Privacy Policy" [checked] [ref=e33] [cursor=pointer]:
+                - generic:
+                  - img
+              - checkbox [checked]
+              - generic [ref=e35]:
+                - text: I agree to the
+                - link "Terms and Conditions" [ref=e36] [cursor=pointer]:
+                  - /url: /terms
+                - text: and
+                - link "Privacy Policy" [ref=e37] [cursor=pointer]:
+                  - /url: /privacy
+            - button "Create Account" [ref=e38] [cursor=pointer]
+            - generic [ref=e39]:
+              - generic [ref=e40]: "Form State: Valid"
+              - generic [ref=e41]: "Errors: 0"
+              - generic [ref=e42]: "Dirty: Yes"
+              - generic [ref=e43]: "Password Match: Yes"
+          - generic [ref=e44]:
+            - generic [ref=e49]: Or continue with
+            - generic [ref=e50]:
+              - button "Twitter" [ref=e51] [cursor=pointer]:
+                - img [ref=e52] [cursor=pointer]
+                - generic [ref=e54] [cursor=pointer]: Twitter
+              - button "GitHub" [ref=e55] [cursor=pointer]:
+                - img [ref=e56] [cursor=pointer]
+                - generic [ref=e58] [cursor=pointer]: GitHub
+        - link "← Back to home" [ref=e60] [cursor=pointer]:
+          - /url: /
+    - contentinfo [ref=e61]:
+      - paragraph [ref=e64]: © 2024 ClearDay. Your day, already sorted.
+  - alert [ref=e65]
+```

@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Plus, CheckCircle, Circle, Calendar, Clock, Target } from 'lucide-react'
 import { DailySummary } from '@/components/dashboard/DailySummary'
+import { TaskList } from '@/components/dashboard/TaskList'
 
 export default function TodayPage() {
   // Get current date
@@ -15,21 +16,13 @@ export default function TodayPage() {
     day: 'numeric',
   })
 
-  // Mock data for demonstration
-  const todaysTasks = [
-    { id: 1, title: 'Review project proposal', completed: false, priority: 'high' },
-    { id: 2, title: 'Team standup meeting', completed: true, priority: 'medium' },
-    { id: 3, title: 'Update documentation', completed: false, priority: 'low' },
-  ]
+  // Format date for database query (YYYY-MM-DD)
+  const todayISO = today.toISOString().split('T')[0]
 
   const todaysEvents = [
     { id: 1, title: 'Client presentation', time: '10:00 AM', duration: '1h' },
     { id: 2, title: 'Lunch with team', time: '12:30 PM', duration: '30m' },
   ]
-
-  const completedTasks = todaysTasks.filter(task => task.completed).length
-  const totalTasks = todaysTasks.length
-  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0
 
   return (
     <div className="space-y-6">
@@ -45,60 +38,9 @@ export default function TodayPage() {
         <DailySummary />
 
         {/* Tasks Section */}
-        <Card className="md:col-span-1 lg:col-span-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
-                Today&apos;s Tasks
-              </CardTitle>
-              <Button size="sm" className="h-8">
-                <Plus className="h-4 w-4 mr-1" />
-                Add Task
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {todaysTasks.length > 0 ? (
-                todaysTasks.map((task) => (
-                  <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50">
-                    <button className="flex-shrink-0">
-                      {task.completed ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground" />
-                      )}
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'font-medium'}`}>
-                        {task.title}
-                      </p>
-                    </div>
-                    <Badge
-                      variant={
-                        task.priority === 'high' ? 'destructive' :
-                        task.priority === 'medium' ? 'default' : 'secondary'
-                      }
-                      className="text-xs"
-                    >
-                      {task.priority}
-                    </Badge>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <CheckCircle className="h-8 w-8 mb-2" />
-                  <p>No tasks for today</p>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add your first task
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="md:col-span-1 lg:col-span-2">
+          <TaskList date={todayISO} />
+        </div>
 
         {/* Calendar/Events Section */}
         <Card className="md:col-span-1">

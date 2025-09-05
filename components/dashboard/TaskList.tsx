@@ -1,20 +1,99 @@
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Circle } from "lucide-react"
+import { CheckCircle, Circle, Loader2 } from "lucide-react"
+import { TaskItem } from './TaskItem';
+import { AddTaskDialog } from './AddTaskDialog';
+import { fetchTasks } from '@/app/actions/tasks';
 
 interface Task {
-  id: number
+  id: string
   title: string
   completed: boolean
-  priority: 'high' | 'medium' | 'low'
+  priority: 'high' | 'medium' | 'low' | 'urgent'
+  due_time?: string
+  created_at: string
 }
 
 interface TaskListProps {
-  tasks?: Task[]
-  isLoading?: boolean
+  date?: string
 }
 
-export function TaskList({ tasks = [], isLoading = false }: TaskListProps) {
+export function TaskList({ date }: TaskListProps) {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const fetchedTasks = await fetchTasks(date);
+        // Map database tasks to component interface
+        const mappedTasks: Task[] = fetchedTasks.map(dbTask => ({
+          id: dbTask.id,
+          title: dbTask.title,
+          completed: dbTask.completed_at !== null,
+          priority: dbTask.priority,
+          due_time: dbTask.due_date || undefined,
+          created_at: dbTask.created_at
+        }));
+        setTasks(mappedTasks);
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+        setError('Failed to load tasks. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, [date]);
+
+  const handleTaskAdded = () => {
+    // Reload tasks when a new task is added
+    const loadTasks = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const fetchedTasks = await fetchTasks(date);
+        // Map database tasks to component interface
+        const mappedTasks: Task[] = fetchedTasks.map(dbTask => ({
+          id: dbTask.id,
+          title: dbTask.title,
+          completed: dbTask.completed_at !== null,
+          priority: dbTask.priority,
+          due_time: dbTask.due_date || undefined,
+          created_at: dbTask.created_at
+        }));
+        setTasks(mappedTasks);
+      } catch (err) {
+        console.error('Error loading tasks:', err);
+        setError('Failed to load tasks. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  };
+
+  const handleToggleComplete = async (taskId: string) => {
+    // TODO: Implement task completion toggle in Task 53
+    console.log('Toggle task completion:', taskId);
+  };
+
+  const handleEdit = (taskId: string) => {
+    // TODO: Implement task editing in Task 67
+    console.log('Edit task:', taskId);
+  };
+
+  const handleDelete = (taskId: string) => {
+    // TODO: Implement task deletion in Task 69
+    console.log('Delete task:', taskId);
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -38,41 +117,53 @@ export function TaskList({ tasks = [], isLoading = false }: TaskListProps) {
     )
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Today's Tasks
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+            <Circle className="h-8 w-8 mb-2 text-red-500" />
+            <p className="text-red-600">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="text-xs mt-2 text-blue-600 hover:underline"
+            >
+              Try again
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCircle className="h-5 w-5" />
-          Today's Tasks
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Today's Tasks
+          </CardTitle>
+          <AddTaskDialog onTaskAdded={handleTaskAdded} />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
           {tasks.length > 0 ? (
             tasks.map((task) => (
-              <div key={task.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted/50">
-                <button className="flex-shrink-0">
-                  {task.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground" />
-                  )}
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : 'font-medium'}`}>
-                    {task.title}
-                  </p>
-                </div>
-                <Badge
-                  variant={
-                    task.priority === 'high' ? 'destructive' :
-                    task.priority === 'medium' ? 'default' : 'secondary'
-                  }
-                  className="text-xs"
-                >
-                  {task.priority}
-                </Badge>
-              </div>
+              <TaskItem
+                key={task.id}
+                task={task}
+                onToggleComplete={handleToggleComplete}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
             ))
           ) : (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
