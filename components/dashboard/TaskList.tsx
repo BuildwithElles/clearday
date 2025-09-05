@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Circle, Loader2 } from "lucide-react"
@@ -50,9 +50,9 @@ export function TaskList({ date }: TaskListProps) {
 
   useEffect(() => {
     loadTasks();
-  }, [date]);
+  }, [date, loadTasks]);
 
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -103,7 +103,7 @@ export function TaskList({ date }: TaskListProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [date]);
 
   // Pagination logic
   const pagination = usePagination({
