@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Plus, CheckCircle, Circle, Calendar, Clock, Target } from 'lucide-react'
+import { DailySummary } from '@/components/dashboard/DailySummary'
 
 export default function TodayPage() {
   // Get current date
@@ -41,37 +42,7 @@ export default function TodayPage() {
       {/* Main Content Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {/* Daily Summary Section */}
-        <Card className="md:col-span-2 lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5" />
-              Daily Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* Progress Overview */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Task Completion</p>
-                  <p className="text-2xl font-bold">{completedTasks}/{totalTasks}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium">Progress</p>
-                  <Progress value={completionRate} className="w-24" />
-                </div>
-              </div>
-
-              {/* AI Insights */}
-              <div className="bg-muted/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground">
-                  <strong>AI Insight:</strong> You&apos;re making great progress! You have {totalTasks - completedTasks} tasks remaining.
-                  Consider tackling your high-priority items first to maximize your productivity.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <DailySummary />
 
         {/* Tasks Section */}
         <Card className="md:col-span-1 lg:col-span-2">
