@@ -19,7 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { fetchTasks, updateTask, deleteTask } from '@/app/actions/tasks';
+import { fetchTasks } from '@/app/actions/tasks';
+import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { TaskListSkeleton } from '@/components/ui/skeleton';
 import {
@@ -107,13 +108,34 @@ export function TaskList({ date }: TaskListProps) {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError('User not authenticated. Please sign in again.');
+        return;
+      }
+
       // Toggle completion status
       const isCurrentlyCompleted = task.completed_at !== null;
       const updateData = isCurrentlyCompleted
         ? { completed_at: null }
         : { completed_at: new Date().toISOString() };
 
-      await updateTask(taskId, updateData);
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error toggling task completion:', error);
+        setError('Failed to update task. Please try again.');
+        return;
+      }
+
       await loadTasks();
     } catch (err) {
       console.error('Error toggling task completion:', err);
@@ -138,7 +160,30 @@ export function TaskList({ date }: TaskListProps) {
     if (!deletingTaskId) return;
 
     try {
-      await deleteTask(deletingTaskId);
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError('User not authenticated. Please sign in again.');
+        return;
+      }
+
+      // Soft delete the task
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', deletingTaskId)
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+
+      if (error) {
+        console.error('Error deleting task:', error);
+        setError('Failed to delete task. Please try again.');
+        return;
+      }
+
       setDeletingTaskId(null);
       await loadTasks();
     } catch (err) {
