@@ -1,19 +1,39 @@
+'use client'
+
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle, Circle, Loader2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { TaskItem } from './TaskItem';
 import { AddTaskDialog } from './AddTaskDialog';
-import { fetchTasks } from '@/app/actions/tasks';
+import { EditTaskDialog } from './EditTaskDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { fetchTasks, updateTask, deleteTask } from '@/app/actions/tasks';
+import { Database } from '@/types/database';
+import { TaskListSkeleton } from '@/components/ui/skeleton';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+  usePagination,
+} from '@/components/ui/pagination';
 
-interface Task {
-  id: string
-  title: string
-  completed: boolean
-  priority: 'high' | 'medium' | 'low' | 'urgent'
-  due_time?: string
-  created_at: string
-}
+type Task = Database['public']['Tables']['tasks']['Row'];
 
 interface TaskListProps {
   date?: string
@@ -23,6 +43,10 @@ export function TaskList({ date }: TaskListProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const loadTasks = async () => {
@@ -30,16 +54,7 @@ export function TaskList({ date }: TaskListProps) {
         setIsLoading(true);
         setError(null);
         const fetchedTasks = await fetchTasks(date);
-        // Map database tasks to component interface
-        const mappedTasks: Task[] = fetchedTasks.map(dbTask => ({
-          id: dbTask.id,
-          title: dbTask.title,
-          completed: dbTask.completed_at !== null,
-          priority: dbTask.priority,
-          due_time: dbTask.due_date || undefined,
-          created_at: dbTask.created_at
-        }));
-        setTasks(mappedTasks);
+        setTasks(fetchedTasks);
       } catch (err) {
         console.error('Error loading tasks:', err);
         setError('Failed to load tasks. Please try again.');
@@ -51,67 +66,98 @@ export function TaskList({ date }: TaskListProps) {
     loadTasks();
   }, [date]);
 
-  const handleTaskAdded = () => {
-    // Reload tasks when a new task is added
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const fetchedTasks = await fetchTasks(date);
-        // Map database tasks to component interface
-        const mappedTasks: Task[] = fetchedTasks.map(dbTask => ({
-          id: dbTask.id,
-          title: dbTask.title,
-          completed: dbTask.completed_at !== null,
-          priority: dbTask.priority,
-          due_time: dbTask.due_date || undefined,
-          created_at: dbTask.created_at
-        }));
-        setTasks(mappedTasks);
-      } catch (err) {
-        console.error('Error loading tasks:', err);
-        setError('Failed to load tasks. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadTasks = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const fetchedTasks = await fetchTasks(date);
+      setTasks(fetchedTasks);
+      // Reset to first page when data changes
+      setCurrentPage(1);
+    } catch (err) {
+      console.error('Error loading tasks:', err);
+      setError('Failed to load tasks. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Pagination logic
+  const pagination = usePagination({
+    totalItems: tasks.length,
+    itemsPerPage,
+    currentPage,
+  });
+
+  // Get current page items
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTasks = tasks.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleTaskAdded = () => {
     loadTasks();
   };
 
   const handleToggleComplete = async (taskId: string) => {
-    // TODO: Implement task completion toggle in Task 53
-    console.log('Toggle task completion:', taskId);
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      // Toggle completion status
+      const isCurrentlyCompleted = task.completed_at !== null;
+      const updateData = isCurrentlyCompleted
+        ? { completed_at: null }
+        : { completed_at: new Date().toISOString() };
+
+      await updateTask(taskId, updateData);
+      await loadTasks();
+    } catch (err) {
+      console.error('Error toggling task completion:', err);
+      setError('Failed to update task. Please try again.');
+    }
   };
 
-  const handleEdit = (taskId: string) => {
-    // TODO: Implement task editing in Task 67
-    console.log('Edit task:', taskId);
+  const handleEdit = (task: Task) => {
+    setEditingTask(task);
+  };
+
+  const handleEditComplete = () => {
+    setEditingTask(null);
+    loadTasks();
   };
 
   const handleDelete = (taskId: string) => {
-    // TODO: Implement task deletion in Task 69
-    console.log('Delete task:', taskId);
+    setDeletingTaskId(taskId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingTaskId) return;
+
+    try {
+      await deleteTask(deletingTaskId);
+      setDeletingTaskId(null);
+      await loadTasks();
+    } catch (err) {
+      console.error('Error deleting task:', err);
+      setError('Failed to delete task. Please try again.');
+    }
   };
 
   if (isLoading) {
     return (
       <Card>
         <CardHeader>
-          <div className="h-6 bg-muted rounded animate-pulse w-1/3" />
+          <CardTitle className="flex items-center gap-2">
+            <CheckCircle className="h-5 w-5" />
+            Today's Tasks
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex items-center space-x-3 p-2">
-                <div className="h-5 w-5 bg-muted rounded animate-pulse" />
-                <div className="flex-1 space-y-1">
-                  <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
-                </div>
-                <div className="h-5 w-12 bg-muted rounded animate-pulse" />
-              </div>
-            ))}
-          </div>
+          <TaskListSkeleton count={5} />
         </CardContent>
       </Card>
     )
@@ -143,37 +189,121 @@ export function TaskList({ date }: TaskListProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5" />
-            Today's Tasks
-          </CardTitle>
-          <AddTaskDialog onTaskAdded={handleTaskAdded} />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {tasks.length > 0 ? (
-            tasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onToggleComplete={handleToggleComplete}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            ))
-          ) : (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <CheckCircle className="h-8 w-8 mb-2" />
-              <p>No tasks for today</p>
-              <p className="text-xs mt-1">Add your first task to get started</p>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5" />
+              Today's Tasks
+            </CardTitle>
+            <AddTaskDialog onTaskAdded={handleTaskAdded} />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {currentTasks.length > 0 ? (
+              currentTasks.map((task) => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  onToggleComplete={handleToggleComplete}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))
+            ) : tasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                <CheckCircle className="h-8 w-8 mb-2" />
+                <p>No tasks for today</p>
+                <p className="text-xs mt-1">Add your first task to get started</p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
+                <CheckCircle className="h-8 w-8 mb-2" />
+                <p>No tasks found on this page</p>
+                <p className="text-xs mt-1">Try navigating to a different page</p>
+              </div>
+            )}
+          </div>
+
+          {/* Pagination */}
+          {tasks.length > itemsPerPage && (
+            <div className="mt-6 pt-4 border-t">
+              <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+                <span>
+                  Showing {pagination.startItem}-{pagination.endItem} of {pagination.totalItems} tasks
+                </span>
+              </div>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      className={cn(
+                        !pagination.hasPrevPage && "pointer-events-none opacity-50"
+                      )}
+                    />
+                  </PaginationItem>
+
+                  {pagination.getPageNumbers().map((page, index) => (
+                    <PaginationItem key={index}>
+                      {page === 'ellipsis' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink
+                          onClick={() => handlePageChange(page as number)}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      className={cn(
+                        !pagination.hasNextPage && "pointer-events-none opacity-50"
+                      )}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Edit Task Dialog */}
+      {editingTask && (
+        <EditTaskDialog
+          task={editingTask}
+          onTaskUpdated={handleEditComplete}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deletingTaskId} onOpenChange={() => setDeletingTaskId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this task? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

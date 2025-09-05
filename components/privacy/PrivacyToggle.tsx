@@ -6,7 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
-import { updateProfile, getProfile } from '@/app/actions/profile'
+import { supabase } from '@/lib/supabase/client'
+import { Database } from '@/types/database'
+
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 interface PrivacyToggleProps {
   initialValue?: boolean
@@ -29,16 +32,27 @@ export function PrivacyToggle({
     const loadPrivacySetting = async () => {
       try {
         setIsInitializing(true)
-        const result = await getProfile()
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-        if (result.success && result.data) {
-          // Use the actual value from database, fallback to initialValue
-          const currentLocalMode = result.data.local_mode ?? initialValue
-          setIsLocalMode(currentLocalMode)
-        } else {
-          // If we can't load from database, use initialValue
-          console.warn('Could not load privacy setting from database:', result.error)
+        if (userError || !user) {
+          console.warn('User not authenticated, using initial value')
           setIsLocalMode(initialValue)
+          return
+        }
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('local_mode')
+          .eq('id', user.id)
+          .single()
+
+        if (error) {
+          console.warn('Could not load privacy setting from database:', error.message)
+          setIsLocalMode(initialValue)
+        } else {
+          // Use the actual value from database, fallback to initialValue
+          const currentLocalMode = profile?.local_mode ?? initialValue
+          setIsLocalMode(currentLocalMode)
         }
       } catch (err) {
         console.error('Error loading privacy setting:', err)
@@ -62,15 +76,29 @@ export function PrivacyToggle({
       // Update local state immediately for responsive UI
       setIsLocalMode(checked)
 
-      // Update profile in database
-      const result = await updateProfile({
-        local_mode: checked
-      })
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-      if (!result.success) {
+      if (userError || !user) {
+        setIsLocalMode(!checked)
+        setError('User not authenticated')
+        return
+      }
+
+      // Update profile in database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          local_mode: checked,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (error) {
         // Revert on error
         setIsLocalMode(!checked)
-        setError(result.error || 'Failed to update privacy settings')
+        setError('Failed to update privacy settings')
+        console.error('Error updating privacy settings:', error)
         return
       }
 
