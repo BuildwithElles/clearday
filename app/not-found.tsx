@@ -19,7 +19,7 @@ export default function NotFound() {
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">
             It seems you&apos;ve ventured into uncharted territory. Don&apos;t worry,
-            let's get you back on track!
+            let&apos;s get you back on track!
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row">
