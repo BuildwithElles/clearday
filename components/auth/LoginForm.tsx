@@ -74,6 +74,15 @@ export default function LoginForm({ action, onSubmit, isLoading = false, error: 
       }
     } catch (err) {
       console.error('Login form submission error:', err)
+      
+      // Check if this is a NEXT_REDIRECT error (expected for successful login)
+      if (err && typeof err === 'object' && 'digest' in err && 
+          typeof err.digest === 'string' && err.digest.startsWith('NEXT_REDIRECT')) {
+        // This is expected - the redirect will happen automatically
+        console.log('Login successful, redirecting...')
+        return
+      }
+      
       setError('An unexpected error occurred. Please try again.')
       setFieldErrors({})
     } finally {

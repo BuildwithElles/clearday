@@ -52,6 +52,14 @@ export async function signUp(formData: FormData) {
     // Redirect to login page on successful signup
     redirect('/login?message=signup-success')
   } catch (error) {
+    // Check if this is a NEXT_REDIRECT error (expected for successful signup)
+    if (error && typeof error === 'object' && 'digest' in error && 
+        typeof error.digest === 'string' && error.digest.startsWith('NEXT_REDIRECT')) {
+      // This is expected - the redirect will happen automatically
+      console.log('Signup successful, redirecting...')
+      throw error // Re-throw to let Next.js handle the redirect
+    }
+    
     console.error('Signup error:', error)
     const parsedError = parseAuthError(error)
     return { error: parsedError.userMessage, field: parsedError.field }
@@ -98,6 +106,14 @@ export async function signIn(formData: FormData) {
     // Redirect to dashboard on successful login
     redirect('/today')
   } catch (error) {
+    // Check if this is a NEXT_REDIRECT error (expected for successful login)
+    if (error && typeof error === 'object' && 'digest' in error && 
+        typeof error.digest === 'string' && error.digest.startsWith('NEXT_REDIRECT')) {
+      // This is expected - the redirect will happen automatically
+      console.log('Login successful, redirecting...')
+      throw error // Re-throw to let Next.js handle the redirect
+    }
+    
     console.error('Signin error:', error)
     const parsedError = parseAuthError(error)
     return { error: parsedError.userMessage, field: parsedError.field }
@@ -116,6 +132,14 @@ export async function signOut() {
 
     redirect('/')
   } catch (error) {
+    // Check if this is a NEXT_REDIRECT error (expected for successful logout)
+    if (error && typeof error === 'object' && 'digest' in error && 
+        typeof error.digest === 'string' && error.digest.startsWith('NEXT_REDIRECT')) {
+      // This is expected - the redirect will happen automatically
+      console.log('Logout successful, redirecting...')
+      throw error // Re-throw to let Next.js handle the redirect
+    }
+    
     console.error('Signout error:', error)
     const parsedError = parseAuthError(error)
     return { error: parsedError.userMessage, field: parsedError.field }
