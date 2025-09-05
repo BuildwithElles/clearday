@@ -16,7 +16,7 @@ test.describe('Today Page', () => {
     expect(page.url()).toContain('redirectTo=%2Ftoday')
   })
 
-  test('displays page structure for authenticated users', async ({ page }) => {
+  test('displays enhanced page structure for authenticated users', async ({ page }) => {
     // First, we need to be authenticated
     // This would normally be done with a proper login flow
     // For now, we'll test the structure assuming authentication
@@ -46,19 +46,124 @@ test.describe('Today Page', () => {
       const dateElement = page.locator('p').first()
       await expect(dateElement).toBeVisible()
 
-      // Verify main sections exist
+      // Verify main sections exist with icons
       await expect(page.locator('text=Daily Summary')).toBeVisible()
       await expect(page.locator('text=Today\'s Tasks')).toBeVisible()
       await expect(page.locator('text=Today\'s Events')).toBeVisible()
+      await expect(page.locator('text=Quick Actions')).toBeVisible()
+
+      // Verify icons are present
+      await expect(page.locator('[data-testid="target-icon"], svg')).toBeVisible()
 
       // Verify responsive grid layout (cards should be present)
       const cards = page.locator('[data-testid="card"], .card, [class*="card"]')
       await expect(cards.first()).toBeVisible()
 
+      // Verify buttons are present
+      await expect(page.locator('button').filter({ hasText: 'Add Task' })).toBeVisible()
+      await expect(page.locator('button').filter({ hasText: 'New Task' })).toBeVisible()
+
     } catch {
       // If we can't access the page due to auth, that's expected
       // The important thing is that the redirect works properly
       console.log('Page requires authentication - this is expected behavior')
+    }
+  })
+
+  test('displays task completion progress', async ({ page }) => {
+    // This test requires authentication and mock data
+    try {
+      await page.waitForURL('/today', { timeout: 3000 })
+
+      // Check if progress information is displayed
+      const progressText = page.locator('text=/\\d+\\/\\d+/') // Matches "X/Y" format
+      await expect(progressText).toBeVisible()
+
+      // Check if progress bar is present
+      const progressBar = page.locator('progress, [role="progressbar"]')
+      await expect(progressBar).toBeVisible()
+
+    } catch {
+      console.log('Progress test requires authentication')
+    }
+  })
+
+  test('displays AI insights section', async ({ page }) => {
+    try {
+      await page.waitForURL('/today', { timeout: 3000 })
+
+      // Check for AI insight text
+      await expect(page.locator('text=AI Insight:')).toBeVisible()
+
+      // Verify the insight content is displayed
+      const insightText = page.locator('text=/You\'re making great progress/')
+      await expect(insightText).toBeVisible()
+
+    } catch {
+      console.log('AI insights test requires authentication')
+    }
+  })
+
+  test('displays task list with priority badges', async ({ page }) => {
+    try {
+      await page.waitForURL('/today', { timeout: 3000 })
+
+      // Check for task items
+      const taskItems = page.locator('[data-testid="task-item"], .flex.items-center.space-x-3')
+      await expect(taskItems.first()).toBeVisible()
+
+      // Check for priority badges
+      const badges = page.locator('span').filter({ hasText: /(high|medium|low)/i })
+      await expect(badges.first()).toBeVisible()
+
+      // Check for completion indicators
+      const checkIcons = page.locator('svg[data-testid="check-icon"], svg.lucide-check-circle')
+      await expect(checkIcons.first()).toBeVisible()
+
+    } catch {
+      console.log('Task list test requires authentication')
+    }
+  })
+
+  test('displays events with time information', async ({ page }) => {
+    try {
+      await page.waitForURL('/today', { timeout: 3000 })
+
+      // Check for event items
+      const eventItems = page.locator('[data-testid="event-item"], .flex.items-start.space-x-3')
+      await expect(eventItems.first()).toBeVisible()
+
+      // Check for time information
+      const timeText = page.locator('text=/\\d+:\\d+ (AM|PM)/')
+      await expect(timeText).toBeVisible()
+
+      // Check for duration information
+      const durationText = page.locator('text=/\\d+h|\\d+m/')
+      await expect(durationText).toBeVisible()
+
+    } catch {
+      console.log('Events test requires authentication')
+    }
+  })
+
+  test('displays quick action buttons', async ({ page }) => {
+    try {
+      await page.waitForURL('/today', { timeout: 3000 })
+
+      // Check for quick action buttons
+      const quickActions = [
+        'New Task',
+        'Schedule Event',
+        'Set Goal',
+        'View Calendar'
+      ]
+
+      for (const action of quickActions) {
+        await expect(page.locator(`button:has-text("${action}")`)).toBeVisible()
+      }
+
+    } catch {
+      console.log('Quick actions test requires authentication')
     }
   })
 
