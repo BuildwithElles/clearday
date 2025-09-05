@@ -48,10 +48,6 @@ export function TaskList({ date }: TaskListProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => {
-    loadTasks();
-  }, [date, loadTasks]);
-
   const loadTasks = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -104,6 +100,10 @@ export function TaskList({ date }: TaskListProps) {
       setIsLoading(false);
     }
   }, [date]);
+
+  useEffect(() => {
+    loadTasks();
+  }, [date, loadTasks]);
 
   // Pagination logic
   const pagination = usePagination({
