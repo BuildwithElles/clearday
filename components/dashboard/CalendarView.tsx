@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Plus, MapPin } from 'lucide-react';
+import { EventCard } from './EventCard';
 
 interface Event {
   id: string;
@@ -110,33 +111,14 @@ export function CalendarView({ events = [], date, onAddEvent }: CalendarViewProp
                   {hasEvents ? (
                     <div className="space-y-2">
                       {slotEvents.map((event) => (
-                        <div
+                        <EventCard
                           key={event.id}
-                          className="bg-primary/10 border border-primary/20 rounded-md p-2 cursor-pointer hover:bg-primary/20 transition-colors"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-medium text-primary truncate">
-                                {event.title}
-                              </h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3" />
-                                  {formatTime(new Date(event.start_time).toTimeString().slice(0, 5))} - {formatTime(new Date(event.end_time).toTimeString().slice(0, 5))}
-                                </div>
-                                {event.location && (
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                    <MapPin className="h-3 w-3" />
-                                    <span className="truncate">{event.location}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                            <Badge variant="secondary" className="text-xs ml-2">
-                              {getEventDuration(event.start_time, event.end_time)}h
-                            </Badge>
-                          </div>
-                        </div>
+                          event={event}
+                          onClick={() => {
+                            // Handle event click - could open event details modal
+                            console.log('Event clicked:', event);
+                          }}
+                        />
                       ))}
                     </div>
                   ) : (
