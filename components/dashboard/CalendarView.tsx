@@ -41,11 +41,35 @@ export function CalendarView({ events = [], date, onAddEvent }: CalendarViewProp
 
   // Get events for a specific time slot
   const getEventsForTimeSlot = (timeSlot: string) => {
-    return events.filter(event => {
+    return todaysEvents.filter(event => {
       const eventStart = new Date(event.start_time);
       const slotHour = parseInt(timeSlot.split(':')[0]);
       return eventStart.getHours() === slotHour;
     });
+  };
+
+  // Check if events have time conflicts
+  const hasTimeConflicts = (slotEvents: Event[]) => {
+    if (slotEvents.length <= 1) return false;
+
+    // Check if any events overlap
+    for (let i = 0; i < slotEvents.length; i++) {
+      for (let j = i + 1; j < slotEvents.length; j++) {
+        const event1 = slotEvents[i];
+        const event2 = slotEvents[j];
+
+        const start1 = new Date(event1.start_time);
+        const end1 = new Date(event1.end_time);
+        const start2 = new Date(event2.start_time);
+        const end2 = new Date(event2.end_time);
+
+        // Check for overlap
+        if (start1 < end2 && start2 < end1) {
+          return true;
+        }
+      }
+    }
+    return false;
   };
 
   // Calculate event duration in hours
@@ -57,21 +81,8 @@ export function CalendarView({ events = [], date, onAddEvent }: CalendarViewProp
     return Math.max(0.5, durationHours); // Minimum 30 minutes
   };
 
-  const todaysEvents = events.length > 0 ? events : [
-    {
-      id: '1',
-      title: 'Client presentation',
-      start_time: '2025-09-05T10:00:00Z',
-      end_time: '2025-09-05T11:00:00Z',
-      location: 'Conference Room A'
-    },
-    {
-      id: '2',
-      title: 'Lunch with team',
-      start_time: '2025-09-05T12:30:00Z',
-      end_time: '2025-09-05T13:00:00Z'
-    }
-  ];
+  // Use provided events or empty array
+  const todaysEvents = events;
 
   return (
     <Card className="w-full">
@@ -92,13 +103,14 @@ export function CalendarView({ events = [], date, onAddEvent }: CalendarViewProp
           {timeSlots.map((timeSlot) => {
             const slotEvents = getEventsForTimeSlot(timeSlot);
             const hasEvents = slotEvents.length > 0;
+            const conflicts = hasTimeConflicts(slotEvents);
 
             return (
               <div
                 key={timeSlot}
                 className={`flex items-start space-x-3 p-2 rounded-lg transition-colors ${
                   selectedTime === timeSlot ? 'bg-muted' : 'hover:bg-muted/50'
-                } ${hasEvents ? 'bg-muted/30' : ''}`}
+                } ${hasEvents ? 'bg-muted/30' : ''} ${conflicts ? 'border-l-4 border-l-red-500 bg-red-50/50' : ''}`}
                 onClick={() => setSelectedTime(selectedTime === timeSlot ? null : timeSlot)}
               >
                 {/* Time Slot */}

@@ -6,8 +6,9 @@ import { Plus, CheckCircle, Circle, Calendar, Clock, Target } from 'lucide-react
 import { DailySummary } from '@/components/dashboard/DailySummary'
 import { TaskList } from '@/components/dashboard/TaskList'
 import { CalendarView } from '@/components/dashboard/CalendarView'
+import { fetchEvents } from '@/app/actions/events'
 
-export default function TodayPage() {
+export default async function TodayPage() {
   // Get current date
   const today = new Date()
   const dateString = today.toLocaleDateString('en-US', {
@@ -20,10 +21,8 @@ export default function TodayPage() {
   // Format date for database query (YYYY-MM-DD)
   const todayISO = today.toISOString().split('T')[0]
 
-  const todaysEvents = [
-    { id: 1, title: 'Client presentation', time: '10:00 AM', duration: '1h' },
-    { id: 2, title: 'Lunch with team', time: '12:30 PM', duration: '30m' },
-  ]
+  // Fetch real events from database
+  const todaysEvents = await fetchEvents(todayISO)
 
   return (
     <div className="space-y-6">
@@ -45,23 +44,7 @@ export default function TodayPage() {
 
         {/* Calendar/Events Section */}
         <CalendarView
-          events={todaysEvents.map(event => {
-            // Convert time like "10:00 AM" to proper ISO time
-            const [time, period] = event.time.split(' ');
-            const [hours, minutes] = time.split(':');
-            let hour24 = parseInt(hours);
-            if (period === 'PM' && hour24 !== 12) hour24 += 12;
-            if (period === 'AM' && hour24 === 12) hour24 = 0;
-            const startTime = `${hour24.toString().padStart(2, '0')}:${minutes}:00`;
-            const endTime = event.duration === '1h' ? `${(hour24 + 1).toString().padStart(2, '0')}:${minutes}:00` : `${hour24}:${parseInt(minutes) + 30}:00`;
-
-            return {
-              id: event.id.toString(),
-              title: event.title,
-              start_time: `${todayISO}T${startTime}Z`,
-              end_time: `${todayISO}T${endTime}Z`,
-            };
-          })}
+          events={todaysEvents}
           date={todayISO}
         />
 
