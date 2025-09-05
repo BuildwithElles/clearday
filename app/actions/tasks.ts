@@ -99,3 +99,100 @@ export async function createTask(taskData: {
     throw error;
   }
 }
+
+export async function updateTask(
+  taskId: string,
+  taskData: {
+    title?: string;
+    description?: string;
+    due_date?: string;
+    priority?: 'low' | 'medium' | 'high' | 'urgent';
+  }
+): Promise<Task> {
+  try {
+    const supabase = createClient();
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Prepare update data
+    const updateData: Partial<TaskInsert> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (taskData.title !== undefined) {
+      updateData.title = taskData.title;
+    }
+
+    if (taskData.description !== undefined) {
+      updateData.description = taskData.description;
+    }
+
+    if (taskData.due_date !== undefined) {
+      updateData.due_date = taskData.due_date ? new Date(taskData.due_date).toISOString() : null;
+    }
+
+    if (taskData.priority !== undefined) {
+      updateData.priority = taskData.priority;
+    }
+
+    // Update the task
+    const { data: task, error } = await supabase
+      .from('tasks')
+      .update(updateData)
+      .eq('id', taskId)
+      .eq('user_id', user.id) // Ensure user can only update their own tasks
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating task:', error);
+      throw new Error('Failed to update task');
+    }
+
+    if (!task) {
+      throw new Error('Task update failed - no data returned');
+    }
+
+    return task;
+  } catch (error) {
+    console.error('Error in updateTask:', error);
+    throw error;
+  }
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  try {
+    const supabase = createClient();
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Soft delete the task by setting deleted_at timestamp
+    const { error } = await supabase
+      .from('tasks')
+      .update({
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', taskId)
+      .eq('user_id', user.id) // Ensure user can only delete their own tasks
+      .is('deleted_at', null); // Only delete if not already deleted
+
+    if (error) {
+      console.error('Error deleting task:', error);
+      throw new Error('Failed to delete task');
+    }
+  } catch (error) {
+    console.error('Error in deleteTask:', error);
+    throw error;
+  }
+}
