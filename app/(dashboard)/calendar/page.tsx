@@ -12,7 +12,11 @@ export default async function CalendarPage() {
         <p className="text-muted-foreground">View and manage your schedule</p>
       </div>
 
-      <CalendarView events={events.map(event => ({ ...event, location: event.location || undefined }))} />
+      <CalendarView events={events.map(event => ({
+        ...event,
+        location: event.location || undefined,
+        description: event.description || undefined
+      }))} />
     </div>
   );
 }
