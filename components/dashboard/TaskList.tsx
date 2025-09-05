@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { fetchTasks } from '@/app/actions/tasks';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { TaskListSkeleton } from '@/components/ui/skeleton';
@@ -71,8 +70,45 @@ export function TaskList({ date }: TaskListProps) {
     try {
       setIsLoading(true);
       setError(null);
-      const fetchedTasks = await fetchTasks(date);
-      setTasks(fetchedTasks);
+
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        setError('User not authenticated. Please sign in again.');
+        return;
+      }
+
+      let query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+
+      // Filter by date if provided
+      if (date) {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        query = query
+          .gte('due_date', startOfDay.toISOString())
+          .lte('due_date', endOfDay.toISOString());
+      }
+
+      // Sort by priority (high first) then by due time
+      const { data: fetchedTasks, error } = await query
+        .order('priority', { ascending: false }) // high priority first
+        .order('due_date', { ascending: true, nullsFirst: false }); // earlier dates first
+
+      if (error) {
+        console.error('Error loading tasks:', error);
+        setError('Failed to load tasks. Please try again.');
+        return;
+      }
+
+      setTasks(fetchedTasks || []);
       // Reset to first page when data changes
       setCurrentPage(1);
     } catch (err) {
