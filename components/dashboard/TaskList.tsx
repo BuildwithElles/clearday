@@ -49,20 +49,6 @@ export function TaskList({ date }: TaskListProps) {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const loadTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const fetchedTasks = await fetchTasks(date);
-        setTasks(fetchedTasks);
-      } catch (err) {
-        console.error('Error loading tasks:', err);
-        setError('Failed to load tasks. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     loadTasks();
   }, [date]);
 
