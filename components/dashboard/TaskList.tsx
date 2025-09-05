@@ -234,7 +234,7 @@ export function TaskList({ date }: TaskListProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
-            Today's Tasks
+            Today&apos;s Tasks
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -250,7 +250,7 @@ export function TaskList({ date }: TaskListProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5" />
-            Today's Tasks
+            Today&apos;s Tasks
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -276,7 +276,7 @@ export function TaskList({ date }: TaskListProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <CheckCircle className="h-5 w-5" />
-              Today's Tasks
+              Today&apos;s Tasks
             </CardTitle>
             <AddTaskDialog onTaskAdded={handleTaskAdded} />
           </div>

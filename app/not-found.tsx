@@ -13,12 +13,12 @@ export default function NotFound() {
           </div>
           <CardTitle className="text-3xl font-bold">404</CardTitle>
           <CardDescription className="text-lg">
-            Oops! The page you're looking for doesn't exist.
+            Oops! The page you&apos;re looking for doesn&apos;t exist.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-center text-muted-foreground">
-            It seems you've ventured into uncharted territory. Don't worry,
+            It seems you&apos;ve ventured into uncharted territory. Don&apos;t worry,
             let's get you back on track!
           </p>
 
