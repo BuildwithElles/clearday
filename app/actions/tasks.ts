@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database';
 
 type Task = Database['public']['Tables']['tasks']['Row'];
+type TaskInsert = Database['public']['Tables']['tasks']['Insert'];
 
 export async function fetchTasks(date?: string): Promise<Task[]> {
   try {
@@ -46,6 +47,55 @@ export async function fetchTasks(date?: string): Promise<Task[]> {
     return tasks || [];
   } catch (error) {
     console.error('Error in fetchTasks:', error);
+    throw error;
+  }
+}
+
+export async function createTask(taskData: {
+  title: string;
+  description?: string;
+  due_date?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+}): Promise<Task> {
+  try {
+    const supabase = createClient();
+
+    // Get current user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    // Prepare task data for insertion
+    const taskInsert: TaskInsert = {
+      title: taskData.title,
+      description: taskData.description || null,
+      user_id: user.id,
+      due_date: taskData.due_date ? new Date(taskData.due_date).toISOString() : null,
+      priority: taskData.priority || 'medium',
+      source: 'manual',
+    };
+
+    // Insert the task
+    const { data: task, error } = await supabase
+      .from('tasks')
+      .insert(taskInsert)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating task:', error);
+      throw new Error('Failed to create task');
+    }
+
+    if (!task) {
+      throw new Error('Task creation failed - no data returned');
+    }
+
+    return task;
+  } catch (error) {
+    console.error('Error in createTask:', error);
     throw error;
   }
 }
