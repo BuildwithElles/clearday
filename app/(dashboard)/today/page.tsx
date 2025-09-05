@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress'
 import { Plus, CheckCircle, Circle, Calendar, Clock, Target } from 'lucide-react'
 import { DailySummary } from '@/components/dashboard/DailySummary'
 import { TaskList } from '@/components/dashboard/TaskList'
+import { CalendarView } from '@/components/dashboard/CalendarView'
 
 export default function TodayPage() {
   // Get current date
@@ -43,40 +44,26 @@ export default function TodayPage() {
         </div>
 
         {/* Calendar/Events Section */}
-        <Card className="md:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Today&apos;s Events
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {todaysEvents.length > 0 ? (
-                todaysEvents.map((event) => (
-                  <div key={event.id} className="flex items-start space-x-3 p-2 rounded-lg border">
-                    <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium">{event.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {event.time} • {event.duration}
-                      </p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Calendar className="h-8 w-8 mb-2" />
-                  <p>No events scheduled</p>
-                  <Button variant="outline" size="sm" className="mt-2">
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Event
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <CalendarView
+          events={todaysEvents.map(event => {
+            // Convert time like "10:00 AM" to proper ISO time
+            const [time, period] = event.time.split(' ');
+            const [hours, minutes] = time.split(':');
+            let hour24 = parseInt(hours);
+            if (period === 'PM' && hour24 !== 12) hour24 += 12;
+            if (period === 'AM' && hour24 === 12) hour24 = 0;
+            const startTime = `${hour24.toString().padStart(2, '0')}:${minutes}:00`;
+            const endTime = event.duration === '1h' ? `${(hour24 + 1).toString().padStart(2, '0')}:${minutes}:00` : `${hour24}:${parseInt(minutes) + 30}:00`;
+
+            return {
+              id: event.id.toString(),
+              title: event.title,
+              start_time: `${todayISO}T${startTime}Z`,
+              end_time: `${todayISO}T${endTime}Z`,
+            };
+          })}
+          date={todayISO}
+        />
 
         {/* Quick Actions */}
         <Card className="md:col-span-2 lg:col-span-3">
