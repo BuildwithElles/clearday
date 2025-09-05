@@ -30,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { createTask } from '@/app/actions/tasks';
+import { supabase } from '@/lib/supabase/client';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
@@ -65,13 +65,32 @@ export function AddTaskDialog({ onTaskAdded }: AddTaskDialogProps) {
     try {
       setIsSubmitting(true);
 
-      // Call create task server action
-      const result = await createTask({
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      // Prepare task data for insertion
+      const taskInsert = {
         title: data.title,
-        description: data.description,
-        due_date: data.due_date,
+        description: data.description || null,
+        user_id: user.id,
+        due_date: data.due_date ? new Date(data.due_date).toISOString() : null,
         priority: data.priority,
-      });
+        source: 'manual',
+      };
+
+      // Insert the task
+      const { error } = await supabase
+        .from('tasks')
+        .insert(taskInsert);
+
+      if (error) {
+        console.error('Error creating task:', error);
+        return;
+      }
 
       // Reset form and close dialog
       form.reset();
@@ -79,7 +98,6 @@ export function AddTaskDialog({ onTaskAdded }: AddTaskDialogProps) {
       onTaskAdded?.();
     } catch (error) {
       console.error('Error creating task:', error);
-      // TODO: Show error message in Task 65 (Toast notifications)
     } finally {
       setIsSubmitting(false);
     }
