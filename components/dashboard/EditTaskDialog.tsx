@@ -30,7 +30,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { updateTask } from '@/app/actions/tasks';
+import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 
 const taskSchema = z.object({
@@ -79,20 +79,51 @@ export function EditTaskDialog({ task, onTaskUpdated, trigger }: EditTaskDialogP
     try {
       setIsSubmitting(true);
 
-      // Call update task server action
-      const result = await updateTask(task.id, {
-        title: data.title,
-        description: data.description,
-        due_date: data.due_date,
-        priority: data.priority,
-      });
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        console.error('User not authenticated');
+        return;
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (data.title !== undefined) {
+        updateData.title = data.title;
+      }
+
+      if (data.description !== undefined) {
+        updateData.description = data.description;
+      }
+
+      if (data.due_date !== undefined) {
+        updateData.due_date = data.due_date ? new Date(data.due_date).toISOString() : null;
+      }
+
+      if (data.priority !== undefined) {
+        updateData.priority = data.priority;
+      }
+
+      // Update the task
+      const { error } = await supabase
+        .from('tasks')
+        .update(updateData)
+        .eq('id', task.id)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating task:', error);
+        return;
+      }
 
       // Close dialog and notify parent
       setOpen(false);
       onTaskUpdated?.();
     } catch (error) {
       console.error('Error updating task:', error);
-      // TODO: Show error message using toast notifications (Task 65)
     } finally {
       setIsSubmitting(false);
     }
