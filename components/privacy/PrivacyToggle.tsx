@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Shield, Eye, EyeOff, AlertTriangle } from 'lucide-react'
-import { updateProfile } from '@/app/actions/profile'
+import { updateProfile, getProfile } from '@/app/actions/profile'
 
 interface PrivacyToggleProps {
   initialValue?: boolean
@@ -21,11 +21,39 @@ export function PrivacyToggle({
 }: PrivacyToggleProps) {
   const [isLocalMode, setIsLocalMode] = useState(initialValue)
   const [isLoading, setIsLoading] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Load current privacy setting from database
+  useEffect(() => {
+    const loadPrivacySetting = async () => {
+      try {
+        setIsInitializing(true)
+        const result = await getProfile()
+
+        if (result.success && result.data) {
+          // Use the actual value from database, fallback to initialValue
+          const currentLocalMode = result.data.local_mode ?? initialValue
+          setIsLocalMode(currentLocalMode)
+        } else {
+          // If we can't load from database, use initialValue
+          console.warn('Could not load privacy setting from database:', result.error)
+          setIsLocalMode(initialValue)
+        }
+      } catch (err) {
+        console.error('Error loading privacy setting:', err)
+        setIsLocalMode(initialValue)
+      } finally {
+        setIsInitializing(false)
+      }
+    }
+
+    loadPrivacySetting()
+  }, [initialValue])
 
   // Handle toggle change
   const handleToggle = async (checked: boolean) => {
-    if (disabled) return
+    if (disabled || isInitializing) return
 
     setIsLoading(true)
     setError(null)
@@ -122,12 +150,12 @@ export function PrivacyToggle({
               id="privacy-toggle"
               checked={isLocalMode}
               onCheckedChange={handleToggle}
-              disabled={disabled || isLoading}
+              disabled={disabled || isLoading || isInitializing}
               className="data-[state=checked]:bg-green-600"
             />
-            {isLoading && (
+            {(isLoading || isInitializing) && (
               <div className="text-xs text-muted-foreground animate-pulse">
-                Saving...
+                {isInitializing ? 'Loading...' : 'Saving...'}
               </div>
             )}
           </div>
