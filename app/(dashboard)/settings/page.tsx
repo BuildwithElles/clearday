@@ -22,6 +22,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react'
+import { PrivacyToggle } from '@/components/privacy/PrivacyToggle'
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile')
@@ -129,15 +130,12 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Privacy Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base">Local Mode</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Keep all your data stored locally on your device
-                  </p>
-                </div>
-                <Switch />
-              </div>
+              <PrivacyToggle
+                initialValue={false}
+                onToggle={(value) => {
+                  console.log('Privacy mode changed:', value)
+                }}
+              />
 
               <Separator />
 
