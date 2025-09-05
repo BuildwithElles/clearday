@@ -44,7 +44,11 @@ export default async function TodayPage() {
 
         {/* Calendar/Events Section */}
         <CalendarView
-          events={todaysEvents}
+          events={todaysEvents.map(event => ({
+            ...event,
+            location: event.location || undefined,
+            description: event.description || undefined
+          }))}
           date={todayISO}
         />
 
