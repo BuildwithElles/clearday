@@ -1,0 +1,50 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="iconGradientMask" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f0f0f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#iconGradient)" stroke="#ffffff" stroke-width="32"/>
+
+  <!-- Calendar grid -->
+  <rect x="140" y="160" width="232" height="192" rx="16" fill="url(#iconGradientMask)" opacity="0.9"/>
+
+  <!-- Calendar header -->
+  <rect x="140" y="160" width="232" height="40" rx="16" fill="url(#iconGradient)"/>
+  <rect x="140" y="160" width="232" height="20" fill="url(#iconGradient)"/>
+
+  <!-- Calendar days -->
+  <rect x="156" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="188" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="220" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="252" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="284" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="316" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+  <rect x="348" y="188" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.8"/>
+
+  <!-- Calendar content -->
+  <rect x="156" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <rect x="188" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <circle cx="200" cy="232" r="3" fill="url(#iconGradient)"/>
+  <rect x="220" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <rect x="252" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <rect x="284" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <rect x="316" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+  <rect x="348" y="220" width="24" height="24" rx="4" fill="url(#iconGradient)" opacity="0.6"/>
+
+  <!-- Task list indicator -->
+  <rect x="160" y="280" width="16" height="16" rx="2" fill="url(#iconGradient)"/>
+  <rect x="160" y="304" width="16" height="16" rx="2" fill="url(#iconGradient)" opacity="0.7"/>
+  <rect x="160" y="328" width="16" height="16" rx="2" fill="url(#iconGradient)" opacity="0.5"/>
+
+  <!-- Check marks -->
+  <path d="M168 288 L172 292 L178 282" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M168 312 L172 316 L178 306" stroke="url(#iconGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+</svg>
