@@ -63,7 +63,6 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-site-verification-code',
     yandex: 'your-yandex-verification-code',
-    bing: 'your-bing-site-verification-code',
   },
   category: 'productivity',
 }
