@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Database } from '@/types/database';
+import { useAnalytics } from '@/lib/analytics';
 
 type Task = Database['public']['Tables']['tasks']['Row'];
 
@@ -17,6 +18,7 @@ interface TaskItemProps {
 
 export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const { trackTaskCompletion } = useAnalytics();
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -66,7 +68,13 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
         <div className="flex items-center gap-3">
           <Checkbox
             checked={isCompleted}
-            onCheckedChange={() => onToggleComplete(task.id)}
+            onCheckedChange={() => {
+              onToggleComplete(task.id);
+              // Track task completion if it's being marked as complete
+              if (!isCompleted) {
+                trackTaskCompletion(task.id, task.title);
+              }
+            }}
             className="mt-0.5"
           />
 

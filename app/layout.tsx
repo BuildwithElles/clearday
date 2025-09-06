@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/toaster'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { AnalyticsProvider } from '@/components/AnalyticsProvider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -76,12 +78,29 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#667eea" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="ClearDay" />
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+        <meta name="msapplication-TileColor" content="#667eea" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+      </head>
       <body className={inter.className}>
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
-        <Toaster />
+        <ThemeProvider
+          defaultTheme="system"
+          storageKey="clearday-ui-theme"
+        >
+          <AnalyticsProvider>
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+            <Toaster />
+          </AnalyticsProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

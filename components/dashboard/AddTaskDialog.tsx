@@ -31,6 +31,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { supabase } from '@/lib/supabase/client';
+import { useAnalytics } from '@/lib/analytics';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
@@ -52,6 +53,7 @@ interface AddTaskDialogProps {
 export function AddTaskDialog({ onTaskAdded, open: externalOpen, onOpenChange }: AddTaskDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { trackTaskCreated } = useAnalytics();
 
   // Use external control if provided, otherwise use internal state
   const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
@@ -97,6 +99,9 @@ export function AddTaskDialog({ onTaskAdded, open: externalOpen, onOpenChange }:
         console.error('Error creating task:', error);
         return;
       }
+
+      // Track task creation
+      trackTaskCreated(data.title, data.priority);
 
       // Reset form and close dialog
       form.reset();
