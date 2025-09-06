@@ -55,7 +55,7 @@ export function RateLimitError({
         </div>
         <CardTitle className="text-lg text-orange-900">Rate Limit Exceeded</CardTitle>
         <CardDescription>
-          You've made too many requests recently
+          You&apos;ve made too many requests recently
         </CardDescription>
       </CardHeader>
 
