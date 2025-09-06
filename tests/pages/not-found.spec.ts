@@ -136,3 +136,6 @@ test.describe('404 Page', () => {
     await expect(page.locator('text=contact support')).toBeVisible();
   });
 });
+
+
+

@@ -164,3 +164,6 @@ test.describe('Mobile Navigation', () => {
     await expect(page.locator('text=Today')).toBeVisible();
   });
 });
+
+
+

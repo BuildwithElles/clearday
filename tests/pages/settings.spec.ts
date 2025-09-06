@@ -159,3 +159,6 @@ test.describe('Settings Page', () => {
     await expect(page.locator('h1')).toContainText('Settings');
   });
 });
+
+
+

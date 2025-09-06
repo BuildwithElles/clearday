@@ -4,20 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Database } from '@/types/database';
 
-interface Task {
-  id: string;
-  title: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  due_time?: string;
-  created_at: string;
-}
+type Task = Database['public']['Tables']['tasks']['Row'];
 
 interface TaskItemProps {
   task: Task;
   onToggleComplete: (taskId: string) => void;
-  onEdit: (taskId: string) => void;
+  onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
 }
 
@@ -49,10 +43,21 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
     });
   };
 
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  const isCompleted = task.completed_at !== null;
+
   return (
     <Card
       className={`transition-all duration-200 hover:shadow-md ${
-        task.completed ? 'opacity-60' : ''
+        isCompleted ? 'opacity-60' : ''
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -60,7 +65,7 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
           <Checkbox
-            checked={task.completed}
+            checked={isCompleted}
             onCheckedChange={() => onToggleComplete(task.id)}
             className="mt-0.5"
           />
@@ -69,7 +74,7 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
             <div className="flex items-center gap-2 mb-1">
               <h3
                 className={`font-medium text-sm leading-tight ${
-                  task.completed ? 'line-through text-gray-500' : 'text-gray-900'
+                  isCompleted ? 'line-through text-gray-500' : 'text-gray-900'
                 }`}
               >
                 {task.title}
@@ -82,11 +87,16 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
               </Badge>
             </div>
 
-            {task.due_time && (
-              <p className="text-xs text-gray-500">
-                Due: {formatTime(task.due_time)}
-              </p>
-            )}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              {task.due_date && (
+                <span>Due: {formatDate(task.due_date)}</span>
+              )}
+              {task.description && (
+                <span className="truncate max-w-32" title={task.description}>
+                  {task.description}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className={`flex items-center gap-1 transition-opacity duration-200 ${
@@ -95,8 +105,9 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onEdit(task.id)}
+              onClick={() => onEdit(task)}
               className="h-8 w-8 p-0 hover:bg-blue-50"
+              title="Edit task"
             >
               <Edit className="h-4 w-4 text-blue-600" />
             </Button>
@@ -105,6 +116,7 @@ export function TaskItem({ task, onToggleComplete, onEdit, onDelete }: TaskItemP
               size="sm"
               onClick={() => onDelete(task.id)}
               className="h-8 w-8 p-0 hover:bg-red-50"
+              title="Delete task"
             >
               <Trash2 className="h-4 w-4 text-red-600" />
             </Button>

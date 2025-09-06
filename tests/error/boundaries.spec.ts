@@ -138,3 +138,6 @@ test.describe('Error Boundaries', () => {
     await expect(page.locator('text=Today')).toBeVisible();
   });
 });
+
+
+

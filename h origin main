@@ -1,0 +1,5 @@
+[33mb97936c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m fix: move loadTasks function before useEffect to resolve hoisting error
+[33m721d413[m fix: resolve final Vercel build errors
+[33m5b73b26[m fix: remove duplicate fetchTasks reference in TaskList useEffect
+[33m2883524[m fix: resolve TypeScript type error in today page
+[33m7f3af9b[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m fix: resolve remaining TypeScript type error in calendar page
