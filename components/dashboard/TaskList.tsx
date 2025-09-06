@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/database';
 import { TaskListSkeleton } from '@/components/ui/skeleton';
+import { NoTasksState } from '@/components/EmptyState';
 import {
   Pagination,
   PaginationContent,
@@ -46,6 +47,7 @@ export function TaskList({ date }: TaskListProps) {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showAddTaskDialog, setShowAddTaskDialog] = useState(false);
   const itemsPerPage = 10;
 
   const loadTasks = useCallback(async () => {
@@ -264,7 +266,11 @@ export function TaskList({ date }: TaskListProps) {
               <CheckCircle className="h-5 w-5" />
               Today&apos;s Tasks
             </CardTitle>
-            <AddTaskDialog onTaskAdded={handleTaskAdded} />
+            <AddTaskDialog
+              open={showAddTaskDialog}
+              onOpenChange={setShowAddTaskDialog}
+              onTaskAdded={handleTaskAdded}
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -280,11 +286,7 @@ export function TaskList({ date }: TaskListProps) {
                 />
               ))
             ) : tasks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                <CheckCircle className="h-8 w-8 mb-2" />
-                <p>No tasks for today</p>
-                <p className="text-xs mt-1">Add your first task to get started</p>
-              </div>
+              <NoTasksState onCreateTask={() => setShowAddTaskDialog(true)} />
             ) : (
               <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                 <CheckCircle className="h-8 w-8 mb-2" />

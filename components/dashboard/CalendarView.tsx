@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, Plus, MapPin } from 'lucide-react';
 import { EventCard } from './EventCard';
+import { NoEventsState } from '@/components/EmptyState';
 
 interface Event {
   id: string;
@@ -147,13 +148,8 @@ export function CalendarView({ events = [], date, onAddEvent }: CalendarViewProp
         </div>
 
         {todaysEvents.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-32 text-muted-foreground mt-4">
-            <Calendar className="h-8 w-8 mb-2" />
-            <p className="text-sm">No events scheduled for today</p>
-            <Button variant="outline" size="sm" className="mt-2" onClick={onAddEvent}>
-              <Plus className="h-4 w-4 mr-1" />
-              Schedule Event
-            </Button>
+          <div className="mt-4">
+            <NoEventsState onCreateEvent={onAddEvent || (() => {})} />
           </div>
         )}
       </CardContent>

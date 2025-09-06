@@ -45,11 +45,17 @@ type TaskFormData = z.infer<typeof taskSchema>;
 
 interface AddTaskDialogProps {
   onTaskAdded?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function AddTaskDialog({ onTaskAdded }: AddTaskDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddTaskDialog({ onTaskAdded, open: externalOpen, onOpenChange }: AddTaskDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Use external control if provided, otherwise use internal state
+  const isOpen = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
 
   const form = useForm<TaskFormData>({
     resolver: zodResolver(taskSchema),
@@ -109,7 +115,7 @@ export function AddTaskDialog({ onTaskAdded }: AddTaskDialogProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-full">
           <Plus className="h-4 w-4 mr-2" />
