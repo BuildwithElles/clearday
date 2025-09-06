@@ -5,6 +5,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { Toaster } from '@/components/ui/toaster'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { AnalyticsProvider } from '@/components/AnalyticsProvider'
+import '@/lib/vitals' // Initialize Web Vitals tracking
 
 const inter = Inter({ subsets: ['latin'] })
 

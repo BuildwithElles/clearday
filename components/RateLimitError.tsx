@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { AlertTriangle, Clock, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+// Using Card components for error display instead of Alert
 
 interface RateLimitErrorProps {
   message?: string
@@ -60,12 +60,10 @@ export function RateLimitError({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            {message}
-          </AlertDescription>
-        </Alert>
+        <div className="flex items-center space-x-2 p-3 bg-orange-50 border border-orange-200 rounded-md">
+          <AlertTriangle className="h-4 w-4 text-orange-600" />
+          <p className="text-sm text-orange-800">{message}</p>
+        </div>
 
         {countdown !== null && (
           <div className="text-center">
