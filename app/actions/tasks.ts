@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/types/database';
+import { rateLimitAction } from '@/lib/rate-limit';
 
 type Task = Database['public']['Tables']['tasks']['Row'];
 type TaskInsert = Database['public']['Tables']['tasks']['Insert'];
 
 export async function fetchTasks(date?: string): Promise<Task[]> {
-  try {
+  return rateLimitAction(async () => {
+    try {
     const supabase = createClient();
 
     // Get current user
@@ -45,10 +47,11 @@ export async function fetchTasks(date?: string): Promise<Task[]> {
     }
 
     return tasks || [];
-  } catch (error) {
-    console.error('Error in fetchTasks:', error);
-    throw error;
-  }
+    } catch (error) {
+      console.error('Error in fetchTasks:', error);
+      throw error;
+    }
+  }, 'tasks');
 }
 
 export async function createTask(taskData: {
@@ -57,7 +60,8 @@ export async function createTask(taskData: {
   due_date?: string;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
 }): Promise<Task> {
-  try {
+  return rateLimitAction(async () => {
+    try {
     const supabase = createClient();
 
     // Get current user
@@ -94,10 +98,11 @@ export async function createTask(taskData: {
     }
 
     return task;
-  } catch (error) {
-    console.error('Error in createTask:', error);
-    throw error;
-  }
+    } catch (error) {
+      console.error('Error in createTask:', error);
+      throw error;
+    }
+  }, 'tasks');
 }
 
 export async function updateTask(
@@ -109,7 +114,8 @@ export async function updateTask(
     priority?: 'low' | 'medium' | 'high' | 'urgent';
   }
 ): Promise<Task> {
-  try {
+  return rateLimitAction(async () => {
+    try {
     const supabase = createClient();
 
     // Get current user
@@ -159,14 +165,16 @@ export async function updateTask(
     }
 
     return task;
-  } catch (error) {
-    console.error('Error in updateTask:', error);
-    throw error;
-  }
+    } catch (error) {
+      console.error('Error in updateTask:', error);
+      throw error;
+    }
+  }, 'tasks');
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  try {
+  return rateLimitAction(async () => {
+    try {
     const supabase = createClient();
 
     // Get current user
@@ -191,8 +199,9 @@ export async function deleteTask(taskId: string): Promise<void> {
       console.error('Error deleting task:', error);
       throw new Error('Failed to delete task');
     }
-  } catch (error) {
-    console.error('Error in deleteTask:', error);
-    throw error;
-  }
+    } catch (error) {
+      console.error('Error in deleteTask:', error);
+      throw error;
+    }
+  }, 'tasks');
 }

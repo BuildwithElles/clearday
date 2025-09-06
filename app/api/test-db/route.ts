@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { withRateLimit } from '@/lib/rate-limit'
 
 // Test database connection API route
 // This endpoint tests various database operations to ensure everything is working
-export async function GET(request: NextRequest) {
+export const GET = withRateLimit(async (request: NextRequest) => {
   try {
     const supabase = createAdminClient()
 
@@ -134,10 +135,10 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     )
   }
-}
+})
 
 // Optional: Add a simple health check that doesn't require admin access
-export async function HEAD() {
+export const HEAD = withRateLimit(async () => {
   try {
     const supabase = createAdminClient()
     
@@ -155,4 +156,4 @@ export async function HEAD() {
   } catch (error) {
     return new Response(null, { status: 503 })
   }
-}
+})
