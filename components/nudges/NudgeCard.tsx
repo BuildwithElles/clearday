@@ -46,7 +46,7 @@ interface NudgeCardProps {
   dismissible?: boolean
   autoHide?: boolean
   className?: string
-  icon?: React.ReactNode
+  icon?: React.ComponentType<{ className?: string }>
 }
 
 const nudgeConfigs = {
@@ -126,7 +126,7 @@ export function NudgeCard({
   const [isDismissing, setIsDismissing] = useState(false)
 
   const config = nudgeConfigs[type]
-  const IconComponent = icon || config.icon
+  const IconComponent = (icon || config.icon) as React.ComponentType<{ className?: string }>
 
   const handleDismiss = () => {
     setIsDismissing(true)
