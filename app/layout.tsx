@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   keywords: ['productivity', 'calendar', 'tasks', 'habits', 'AI', 'privacy'],
 }
 
+// Force dynamic rendering to avoid static generation issues with client components
+export const dynamic = 'force-dynamic'
+
 export default function RootLayout({
   children,
 }: {
